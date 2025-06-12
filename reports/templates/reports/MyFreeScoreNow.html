@@ -758,7 +758,7 @@
                     const formData = new FormData();
                     formData.append('pdf', uploadedFile, uploadedFile.name);
 
-                    const response = await fetch('http://18.224.45.98:8000/get_report', {
+                    const response = await fetch('/get_report', {
                         method: 'POST',
                         headers: {
                             'accept': 'application/json'
