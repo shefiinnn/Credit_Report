@@ -679,10 +679,12 @@
             }
 
             /* Adjust remove button positioning in responsive table */
-            .selected-creditors-table td:nth-last-child(1), /* Assuming last column is actions */
+            .selected-creditors-table td:nth-last-child(1),
+            /* Assuming last column is actions */
             .selected-inquiries-table td:nth-last-child(1) {
                 text-align: center;
-                padding-left: 15px; /* Adjust padding if needed */
+                padding-left: 15px;
+                /* Adjust padding if needed */
             }
         }
     </style>
@@ -707,7 +709,7 @@
         <div id="error-message" style="display: none;"></div>
 
         <div id="results-section" style="display: none;">
-            </div>
+        </div>
     </div>
 
     <script>
@@ -758,7 +760,7 @@
                     const formData = new FormData();
                     formData.append('pdf', uploadedFile, uploadedFile.name);
 
-                    const response = await fetch('/get_report', {
+                    const response = await fetch('/get_report/', {  // 👈 note the trailing slash
                         method: 'POST',
                         headers: {
                             'accept': 'application/json'
@@ -912,7 +914,7 @@
                 });
 
                 // Attach event listener for the new "Account Status" filter
-                document.getElementById('account-status-filter').addEventListener('change', function() {
+                document.getElementById('account-status-filter').addEventListener('change', function () {
                     const currentBureau = document.querySelector('.bureau-btn.active').getAttribute('data-bureau');
                     updateAccountDisplay(currentBureau);
                 });
@@ -1294,7 +1296,7 @@
             }
 
             // Generic function to download an HTML table as CSV
-            window.downloadTableAsCSV = function(tableContainerId, filename, typeToClear) {
+            window.downloadTableAsCSV = function (tableContainerId, filename, typeToClear) {
                 const tableContainer = document.getElementById(tableContainerId);
                 const table = tableContainer.querySelector('table');
 
@@ -1393,7 +1395,7 @@
             };
 
             // Function to remove a creditor or inquiry from the table and untick its checkbox
-            window.removeCreditorOrInquiry = function(buttonElement) {
+            window.removeCreditorOrInquiry = function (buttonElement) {
                 const idToRemove = buttonElement.dataset.id; // Get the stored checkbox ID
 
                 // Determine if it's an account or inquiry and remove from the correct Set
