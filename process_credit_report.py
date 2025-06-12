@@ -418,7 +418,7 @@ class CreditReportProcessor:
             json.dump(self.credit_report, f, indent=2)
         print(f"✅ JSON data saved to {self.json_output}")
     
-    def extract_scores_lines(lines):
+    def extract_scores_lines(self,lines):
         """Extract VantageScore 3.0 credit scores from the PDF lines"""
         scores = {"transunion": "N/A", "experian": "N/A", "equifax": "N/A"}
     

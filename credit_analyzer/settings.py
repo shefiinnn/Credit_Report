@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['credit-report-wqhl.onrender.com', 'www.credit-report-wqhl.onrender.com']
 
+APPEND_SLASH = False
 
 
 # Application definition
