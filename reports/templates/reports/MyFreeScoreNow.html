@@ -59,6 +59,8 @@
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
             padding: 30px;
+            /* Ensure container itself doesn't have hidden overflow that cuts content */
+            overflow: visible;
         }
 
         h1,
@@ -109,6 +111,54 @@
             color: var(--primary-color);
             font-weight: 500;
             transition: var(--transition);
+        }
+
+        .payment-history-block {
+            margin-top: 12px;
+        }
+
+        .payment-history-block h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .history-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .month-box {
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            min-width: 30px;
+            text-align: center;
+            font-weight: 500;
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        /* Color codes */
+        .status-ok {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .status-late {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .status-chargeoff {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .status-unknown {
+            background-color: #9e9e9e;
+            color: white;
         }
 
         .custom-file-upload:hover {
@@ -265,6 +315,8 @@
             justify-content: center;
             gap: 15px;
             margin-bottom: 30px;
+            /* Add flex-wrap for responsiveness */
+            flex-wrap: wrap;
         }
 
         .bureau-btn {
@@ -277,6 +329,8 @@
             font-size: 0.95em;
             font-weight: 600;
             transition: var(--transition);
+            /* Ensure sufficient space for wrapping */
+            margin: 5px;
         }
 
         .bureau-btn.active,
@@ -322,6 +376,56 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
         }
+
+        .payment-history-row {
+            margin-top: 10px;
+        }
+
+        .ph-row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .ph-cell {
+            width: 38px;
+            height: 24px;
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin: 1px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Status blocks */
+        .status-ok {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .status-late {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .status-chargeoff {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .status-unknown {
+            background-color: #bdbdbd;
+            color: white;
+        }
+
+        .ph-month {
+            background: transparent;
+            color: #333;
+            font-weight: 500;
+        }
+
 
         .account-header {
             display: flex;
@@ -481,6 +585,8 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             display: none;
             /* Hidden by default until content is generated */
+            /* Ensure these sections don't have hidden overflow */
+            overflow: visible;
         }
 
         .selected-creditors-section h3,
@@ -490,55 +596,95 @@
             color: var(--primary-color);
         }
 
-        .selected-creditors-table,
-        .selected-inquiries-table {
+        /* Styles for the interactive HTML table */
+        .selected-items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-bottom: 20px;
+            /* Ensure table itself doesn't hide content */
+            overflow: hidden;
+            /* Hide overflow of table cells, responsive part handles this */
         }
 
-        .selected-creditors-table th,
-        .selected-creditors-table td,
-        .selected-inquiries-table th,
-        .selected-inquiries-table td {
+        .selected-items-table td,
+        .selected-items-table th {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .selected-items-table {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .selected-items-table th,
+        .selected-items-table td {
             border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 12px 15px;
             text-align: left;
             color: var(--text-light);
         }
 
-        .selected-creditors-table th,
-        .selected-inquiries-table th {
+        .selected-creditors-section>div,
+        .selected-inquiries-section>div {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .selected-items-table th {
             background-color: #3B474F;
-            color: var(--text-dark);
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.9em;
         }
 
-        .selected-creditors-table tbody tr:nth-child(even),
-        .selected-inquiries-table tbody tr:nth-child(even) {
-            background-color: rgba(0, 0, 0, 0.1);
+        .selected-items-table tr:nth-child(even) {
+            background-color: #313B42;
         }
 
-        .selected-creditors-table tbody tr:hover,
-        .selected-inquiries-table tbody tr:hover {
-            background-color: rgba(76, 175, 80, 0.1);
-            /* Light hover effect */
+        .selected-items-table tr:hover {
+            background-color: #3B474F;
         }
 
-        /* Container for download button to use Flexbox */
-        .table-action-row {
-            display: flex;
-            justify-content: flex-end;
-            /* Pushes content to the right */
+        /* Styles for the text area containing the table data */
+        .table-text-output-container {
             margin-top: 20px;
+            border-top: 1px solid var(--text-medium);
+            padding-top: 20px;
         }
 
-        /* Download button for tables */
-        .download-btn {
-            background-color: var(--info-color);
-            /* Blue for download */
+        .table-text-output-container h4 {
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .table-text-output {
+            width: 100%;
+            height: 200px;
+            /* Adjust height as needed */
+            background-color: #3B474F;
+            color: var(--text-light);
+            border: 1px solid var(--text-medium);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            /* Monospaced font for tabular data */
+            font-size: 0.9em;
+            resize: vertical;
+            /* Allow vertical resizing */
+            white-space: pre;
+            /* Preserve whitespace and newlines */
+            overflow: auto;
+            /* Add scrollbars if content overflows */
+        }
+
+
+        .download-csv-btn {
+            background-color: #17a2b8;
+            /* Info blue for download */
             color: white;
             padding: 10px 20px;
             border: none;
@@ -547,12 +693,177 @@
             font-size: 0.9em;
             font-weight: 600;
             transition: var(--transition);
+            margin-top: 10px;
         }
 
-        .download-btn:hover {
-            background-color: #1976D2;
-            /* Darker blue on hover */
+        .payment-history-block {
+            margin-top: 12px;
         }
+
+        .payment-history-block h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .month-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 6px;
+        }
+
+        .month-status {
+            display: flex;
+            justify-content: space-between;
+            background: #f7f7f7;
+            border-radius: 4px;
+            padding: 4px 6px;
+            font-size: 0.75rem;
+        }
+
+        .status-box {
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .status-ok {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .status-late {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .status-chargeoff {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .status-unknown {
+            background-color: #9e9e9e;
+            color: white;
+        }
+
+
+        .download-csv-btn:hover {
+            background-color: #138496;
+        }
+
+        .public-info-bureau {
+            background-color: var(--surface-dark);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-top: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            /* Allow content to push out if necessary, especially for tables */
+            overflow: hidden;
+            /* Use hidden to contain box-shadow and border-radius properly, table wrapper handles scroll */
+        }
+
+        .public-info-bureau h4 {
+            color: var(--text-dark);
+            /* White for headings */
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        /* Wrapper for the table to enable horizontal scrolling on small screens */
+        .public-info-table-wrapper {
+            overflow-x: auto;
+            /* Enables horizontal scrollbar if table content overflows */
+            -webkit-overflow-scrolling: touch;
+            /* Improves scrolling on iOS devices */
+        }
+
+        .public-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            /* Collapses borders between table cells */
+            min-width: 300px;
+            /* Ensure a minimum width for the table even on small screens */
+        }
+
+        .public-info-table tr {
+            border-bottom: 1px solid var(--text-medium);
+            /* Separator for rows */
+        }
+
+        .public-info-table tr:last-child {
+            border-bottom: none;
+            /* No border for the last row */
+        }
+
+        .public-info-table td {
+            padding: 12px 15px;
+            color: var(--text-light);
+            /* Light text for table content */
+            text-align: left;
+            vertical-align: top;
+            /* Align content to the top */
+            white-space: normal;
+            /* Allow text to wrap within cells */
+        }
+
+        .public-info-table td strong {
+            color: var(--text-medium);
+            /* Medium gray for labels (e.g., 'Type', 'Status') */
+            display: block;
+            /* Make the strong tag a block to ensure label and value are on separate lines on mobile if needed */
+            margin-bottom: 5px;
+            /* Space between label and value */
+            font-weight: 500;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .public-info-bureau {
+                padding: 20px;
+                margin-top: 25px;
+            }
+
+            .public-info-bureau h4 {
+                font-size: 1.2em;
+                margin-bottom: 15px;
+            }
+
+            .public-info-table td {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .public-info-bureau {
+                padding: 15px;
+                margin-top: 20px;
+            }
+
+            .public-info-bureau h4 {
+                font-size: 1.1em;
+                margin-bottom: 10px;
+            }
+
+            .public-info-table td {
+                /* On very small screens, stack label and value if needed */
+                display: block;
+                width: 100%;
+                /* Take full width */
+                box-sizing: border-box;
+                /* Include padding in width */
+            }
+
+            .public-info-table td strong {
+                margin-bottom: 2px;
+                /* Less space when stacked */
+            }
+        }
+
 
         /* Remove button inside table rows */
         .remove-btn {
@@ -573,20 +884,41 @@
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
             .container {
                 margin: 10px auto;
-                padding: 20px;
+                padding: 15px;
+                /* Slightly reduced padding */
+            }
+
+            h1,
+            h2,
+            h3 {
+                margin-bottom: 15px;
             }
 
             .upload-controls {
                 flex-direction: column;
                 gap: 10px;
+                width: 100%;
+                /* Full width on small screens */
+            }
+
+            .custom-file-upload,
+            #analyze-btn {
+                width: 100%;
+                /* Full width for buttons */
+                text-align: center;
             }
 
             .filter-options {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 15px;
+                padding: 10px;
             }
 
             .summary-cards {
@@ -618,73 +950,130 @@
                 width: 100%;
             }
 
+            /* Responsive Buttons */
             .button-group-tables {
                 flex-direction: column;
                 gap: 10px;
-            }
-
-            .selected-creditors-table th,
-            .selected-creditors-table td,
-            .selected-inquiries-table th,
-            .selected-inquiries-table td {
-                font-size: 0.85em;
-                padding: 8px;
-            }
-
-            /* Responsive table for remove buttons */
-            .selected-creditors-table,
-            .selected-inquiries-table {
-                display: block;
                 width: 100%;
             }
 
-            .selected-creditors-table thead,
-            .selected-inquiries-table thead {
-                display: none;
+            .button-group-tables .btn {
+                width: 100%;
+                /* Full width for buttons */
             }
 
-            .selected-creditors-table tr,
-            .selected-inquiries-table tr {
-                margin-bottom: 15px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                display: block;
-                border-radius: var(--border-radius);
+            /* Responsive Table Styles */
+            @media (max-width: 768px) {
+                .selected-items-table {
+                    display: block;
+                    width: 100%;
+                    overflow-x: auto;
+                    border: none;
+                }
+
+                .selected-items-table thead {
+                    display: none;
+                }
+
+                .selected-items-table tbody {
+                    display: block;
+                }
+
+                .selected-items-table tr {
+                    display: block;
+                    margin-bottom: 15px;
+                    background-color: #2C3940;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: var(--border-radius);
+                    padding: 10px;
+                }
+
+                .selected-items-table td {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    position: relative;
+                    padding: 8px 12px;
+                    text-align: left;
+                    border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+                    font-size: 0.9em;
+                }
+
+                .selected-items-table td:last-child {
+                    border-bottom: none;
+                }
+
+                .selected-items-table td:before {
+                    content: attr(data-label);
+                    flex-basis: 50%;
+                    font-weight: 600;
+                    color: var(--primary-color);
+                    padding-right: 10px;
+                    text-align: left;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .selected-items-table td[data-label="Actions"] {
+                    justify-content: center;
+                    text-align: center;
+                    border-bottom: none;
+                }
+
+                .selected-items-table td[data-label="Actions"] .remove-btn {
+                    width: 100%;
+                    max-width: 150px;
+                }
+
+                .download-csv-btn {
+                    width: 100%;
+                    font-size: 0.9em;
+                    padding: 10px;
+                    margin-top: 10px;
+                    text-align: center;
+                }
             }
 
-            .selected-creditors-table td,
-            .selected-inquiries-table td {
-                display: block;
-                text-align: right;
-                border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-                position: relative;
-                padding-left: 50%;
-            }
-
-            .selected-creditors-table td:last-child,
-            .selected-inquiries-table td:last-child {
-                border-bottom: none;
-            }
-
-            .selected-creditors-table td:before,
-            .selected-inquiries-table td:before {
-                content: attr(data-label);
-                position: absolute;
-                left: 15px;
-                width: 45%;
-                padding-right: 10px;
-                white-space: nowrap;
-                text-align: left;
-                font-weight: 600;
-                color: var(--primary-color);
-            }
-
-            /* Adjust remove button positioning in responsive table */
-            .selected-creditors-table td:nth-last-child(1),
-            /* Assuming last column is actions */
-            .selected-inquiries-table td:nth-last-child(1) {
+            .download-csv-btn {
+                width: 100%;
+                /* Full width for download button */
                 text-align: center;
-                padding-left: 15px;
-                /* Adjust padding if needed */
+            }
+        }
+
+        /* Smaller breakpoint for very small screens */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .selected-items-table td {
+                padding: 8px 12px;
+                font-size: 0.85em;
+                padding-left: unset;
+                justify-content: space-between;
+            }
+
+            .selected-items-table td:before {
+                font-size: 0.75em;
+                flex-basis: 45%;
+                width: unset;
+                padding-right: 8px;
+            }
+
+            .selected-items-table td[data-label="Actions"] .remove-btn {
+                font-size: 0.8em;
+                padding: 6px 10px;
+            }
+
+            .download-csv-btn {
+                font-size: 0.85em;
+                padding: 8px 12px;
             }
         }
     </style>
@@ -702,7 +1091,8 @@
                 </label>
                 <span id="file-name">No file selected</span>
             </div>
-            <button id="analyze-btn" class="btn" disabled>Analyze Report</button>
+            <button id="analyze-btn" type="button">Analyze</button>
+
         </div>
 
         <div id="loading" style="display: none;">Processing your report...</div>
@@ -760,7 +1150,8 @@
                     const formData = new FormData();
                     formData.append('pdf', uploadedFile, uploadedFile.name);
 
-                    const response = await fetch('/get_report/', {  // 👈 note the trailing slash
+                    // Update this URL to your actual backend API endpoint
+                    const response = await fetch('/get_report/', {
                         method: 'POST',
                         headers: {
                             'accept': 'application/json'
@@ -774,8 +1165,15 @@
                     }
 
                     const data = await response.json();
-                    reportData = data.data;
-                    console.log("✅ Full reportData:", reportData);
+                    console.log("📦 Raw response from backend:", data);
+
+                    if (data.status === "success" && data.data) {
+                        reportData = data.data;
+                        console.log("✅ Full reportData:", reportData);
+                    } else {
+                        console.error("❌ Backend returned error:", data.message || "Unknown error");
+                    }
+
 
                     displayResults('transunion'); // default bureau to display
                     loading.style.display = 'none';
@@ -853,6 +1251,10 @@
                             ${renderBureauInquiries(reportData.inquiries, 'equifax')}
                         </div>
                     </div>
+                    <div id="public-information" class="public-info-section">
+  <h2>Public Information</h2>
+  <div id="public-info-content"></div>
+</div>
 
                     <div class="button-group-tables">
                         <button id="generate-selected-creditors-btn" class="btn">Generate Selected Creditors Table</button>
@@ -861,20 +1263,41 @@
 
                     <div id="selected-creditors-output" class="selected-creditors-section">
                         <h3>Selected Creditors</h3>
-                        <div id="selected-creditors-table-container">
+                        <div id="selected-creditors-interactive-table-container">
                             <p class="text-center-placeholder">No creditors selected yet.</p>
+                        </div>
+                        <div id="selected-creditors-text-output-container" class="table-text-output-container">
+                            <h4>Copy-Paste Friendly Text Output:</h4>
+                            <textarea id="selected-creditors-textarea" class="table-text-output" readonly></textarea>
+                            <button class="download-csv-btn" onclick="downloadTextAreaAsCSV('selected-creditors-textarea', 'Selected_Creditors_Report.csv')">Download as CSV</button>
                         </div>
                     </div>
 
                     <div id="selected-inquiries-output" class="selected-inquiries-section">
                         <h3>Selected Inquiries</h3>
-                        <div id="selected-inquiries-table-container">
+                        <div id="selected-inquiries-interactive-table-container">
                             <p class="text-center-placeholder">No inquiries selected yet.</p>
+                        </div>
+                        <div id="selected-inquiries-text-output-container" class="table-text-output-container">
+                            <h4>Copy-Paste Friendly Text Output:</h4>
+                            <textarea id="selected-inquiries-textarea" class="table-text-output" readonly></textarea>
+                            <button class="download-csv-btn" onclick="downloadTextAreaAsCSV('selected-inquiries-textarea', 'Selected_Inquiries_Report.csv')">Download as CSV</button>
                         </div>
                     </div>
                 `;
 
                 document.getElementById("results-section").innerHTML = resultsHTML;
+                renderPublicInformation(reportData.public_information);
+
+
+                // Initially hide text output containers if no data is present
+                document.getElementById('selected-creditors-text-output-container').style.display = 'none';
+                document.getElementById('selected-inquiries-text-output-container').style.display = 'none';
+
+                // Initially hide whole section too
+                document.getElementById('selected-creditors-output').style.display = 'none';
+                document.getElementById('selected-inquiries-output').style.display = 'none';
+
 
                 // Attach event listeners for all dynamically created elements after rendering
                 attachEventListeners();
@@ -921,20 +1344,105 @@
 
 
                 // Attach event listener for the new "Generate Selected Creditors Table" button
-                document.getElementById('generate-selected-creditors-btn').addEventListener('click', generateSelectedCreditorsTable);
+                document.getElementById('generate-selected-creditors-btn').addEventListener('click', generateSelectedCreditorsAndInquiries);
 
                 // Attach event listener for the new "Generate Selected Inquiries Table" button
-                document.getElementById('generate-selected-inquiries-btn').addEventListener('click', generateSelectedInquiriesTable);
+                document.getElementById('generate-selected-inquiries-btn').addEventListener('click', generateSelectedCreditorsAndInquiries);
             }
 
+            function renderPublicInformation(publicInfo) {
+                const container = document.getElementById("public-info-content");
+                if (!publicInfo) {
+                    container.innerHTML = "<p>No public information available.</p>";
+                    return;
+                }
+
+                let html = "";
+
+                const bureaus = ["transunion", "experian", "equifax"];
+                bureaus.forEach(bureau => {
+                    const info = publicInfo[bureau];
+                    if (!info || Object.keys(info).length === 0) return;
+
+                    html += `
+        <div class="public-info-bureau">
+          <h4>${bureau.charAt(0).toUpperCase() + bureau.slice(1)}</h4>
+          <table class="public-info-table">
+            <tr><td><strong>Type</strong></td><td>${info.type || 'N/A'}</td></tr>
+            <tr><td><strong>Status</strong></td><td>${info.status || 'N/A'}</td></tr>
+            <tr><td><strong>Date Filed/Reported</strong></td><td>${info.date_filed || 'N/A'}</td></tr>
+            <tr><td><strong>Reference #</strong></td><td>${info.reference || 'N/A'}</td></tr>
+          </table>
+        </div>
+      `;
+                });
+
+                container.innerHTML = html || "<p>No public information available.</p>";
+            }
+
+            function renderPaymentHistory(historyText, bureau) {
+                if (!historyText || historyText.trim() === "") return "";
+
+                const cleaned = historyText.trim().toUpperCase();
+
+                // ✅ Show only a simple "None Reported" if that's the content
+                if (cleaned === "NONE REPORTED") {
+                    return `
+            <div class="payment-history-row">
+                <h4>${bureau} Two-Year Payment History</h4>
+                <div class="ph-row ph-status-row">
+                    <div class="ph-cell status-unknown">None Reported</div>
+                </div>
+            </div>
+        `;
+                }
+
+                // List of valid status values
+                const validStatuses = new Set(["OK", "30", "60", "90", "120", "150", "CO", "COLLECTION"]);
+
+                // Filter and normalize tokens
+                const statuses = cleaned
+                    .split(/\s+/)
+                    .filter(token =>
+                        validStatuses.has(token) // ✅ Keep only valid statuses
+                    );
+
+                if (statuses.length === 0) return ""; // Nothing to display
+
+                let html = `
+        <div class="payment-history-row">
+            <h4>${bureau} Two-Year Payment History</h4>
+            <div class="ph-row ph-status-row">`;
+
+                statuses.forEach(status => {
+                    let className = "status-ok";
+                    if (["30", "60", "90", "120", "150"].includes(status)) className = "status-late";
+                    else if (["CO", "COLLECTION"].includes(status)) className = "status-chargeoff";
+
+                    html += `<div class="ph-cell ${className}">${status}</div>`;
+                });
+
+                html += `</div></div>`;
+                return html;
+            }
+
+
+
+
+
             function renderSummary(bureau) {
-                // Ensure reportData.personal_info exists before trying to access properties
-                const personalInfoTransUnion = reportData.personal_info?.transunion || {};
+                // Pull static personal info from TransUnion (or fallback)
+                const personalInfo =
+                    reportData.personal_info?.transunion ||
+                    reportData.personal_info?.experian ||
+                    reportData.personal_info?.equifax || {};
+
                 const scores = reportData?.scores || {
                     transunion: 'N/A',
                     experian: 'N/A',
                     equifax: 'N/A'
                 };
+
                 const summary = reportData.summary || {};
 
                 return `
@@ -942,13 +1450,25 @@
                         <div class="summary-card">
                             <h3>Personal Information</h3>
                             <div class="summary-item">
-                                <span class="label">Year of Birth:</span>
-                                <span class="value">${personalInfoTransUnion.year_of_birth || 'N/A'}</span>
-                            </div>
+    <span class="label">Report Date:</span>
+    <span class="value">${personalInfo.report_date || 'N/A'}</span>
+</div>
+                           <div class="summary-item">
+    <span class="label">Name:</span>
+    <span class="value">${personalInfo.name || 'N/A'}</span>
+</div>
                             <div class="summary-item">
-                                <span class="label">Current Address:</span>
-                                <span class="value">${personalInfoTransUnion.current_address || 'N/A'}</span>
-                            </div>
+    <span class="label">Year of Birth:</span>
+    <span class="value">${personalInfo.year_of_birth || 'N/A'}</span>
+</div>
+<div class="summary-item">
+    <span class="label">Current Address:</span>
+    <span class="value">${personalInfo.current_address || 'N/A'}</span>
+</div>
+<div class="summary-item">
+    <span class="label">Employer:</span>
+    <span class="value">${personalInfo.employer || 'N/A'}</span>
+</div>
                         </div>
                         <div class="summary-card">
                             <h3>Credit Overview</h3>
@@ -989,13 +1509,11 @@
                 `;
             }
 
-
             function renderBureauAccounts(accounts, bureau, showOnlyDerogatory = false) {
                 if (!accounts || accounts.length === 0) return '<p class="text-center-placeholder">No accounts found</p>';
 
                 const accountStatusFilter = document.getElementById('account-status-filter')?.value || 'all';
 
-                // Reverted this filter as per your request
                 let filteredAccounts = accounts.filter(account =>
                     account[bureau] &&
                     Object.keys(account[bureau]).length > 0
@@ -1040,42 +1558,45 @@
                     const originalIndex = reportData.accounts.indexOf(account);
                     const accountId = `account-${bureau}-${originalIndex}`;
                     const isChecked = checkedAccounts.has(accountId) ? 'checked' : '';
+                    const history = account.payment_history?.[bureau] || "";
 
                     return `
-                        <div class="account-item">
-                            <div class="account-header">
-                                <div class="account-name-group">
-                                    <input type="checkbox" id="${accountId}" name="selected_account" value="${accountId}" ${isChecked}>
-                                    <label for="${accountId}" class="account-name">${account.creditor || 'N/A'}</label>
-                                </div>
-                                <div class="account-status ${statusClass}">${status || 'N/A'}</div>
-                            </div>
-                            <div class="account-details">
-                                ${renderAccountDetails(account[bureau])}
-                            </div>
-                        </div>
-                    `;
+    <div class="account-item">
+        <div class="account-header">
+            <div class="account-name-group">
+                <input type="checkbox" id="${accountId}" name="selected_account" value="${accountId}" ${isChecked}>
+                <label for="${accountId}" class="account-name">${account.creditor || 'N/A'}</label>
+            </div>
+            <div class="account-status ${statusClass}">${status || 'N/A'}</div>
+        </div>
+        <div class="account-details">
+            ${renderAccountDetails(account[bureau])}
+            ${renderPaymentHistory(history, bureau.charAt(0).toUpperCase() + bureau.slice(1))}
+        </div>
+    </div>
+`;
                 }).join('');
             }
+
+
 
             function renderAccountDetails(bureauData) {
                 if (!bureauData || Object.keys(bureauData).length === 0) {
                     return '<p class="text-center-placeholder">No data available from this bureau</p>';
                 }
 
-                // Removed 'account_type' from excluded keys
                 const excludedKeys = ['dispute_status', 'creditor_remarks', 'creditor_type'];
 
                 return Object.entries(bureauData)
-                    .filter(([key, value]) => !excludedKeys.includes(key) && value !== null && value !== undefined && value !== '') // Filter out excluded keys and empty values
+                    .filter(([key, value]) => !excludedKeys.includes(key) && value !== null && value !== undefined && value !== '')
                     .map(([key, value]) => {
                         const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                         return `
-                            <div class="detail-item">
-                                <div class="detail-label">${label}</div>
-                                <div class="detail-value">${value}</div>
-                            </div>
-                        `;
+                <div class="detail-item">
+                    <div class="detail-label">${label}</div>
+                    <div class="detail-value">${value}</div>
+                </div>
+            `;
                     }).join('');
             }
 
@@ -1160,104 +1681,178 @@
                     }
                 }
                 console.log('Checked Accounts IDs:', Array.from(checkedAccounts)); // For debugging
-                console.log('Checked Inquiries IDs:', Array.from(checkedInquiries)); // For debugging
+                console.log('Updated Checked Inquiries IDs:', Array.from(checkedInquiries)); // For debugging
             }
 
-            // Function to generate and display the table of selected creditors (Accounts ONLY)
-            function generateSelectedCreditorsTable() {
+            // Combined function to generate both selected creditors and inquiries tables (interactive & text)
+            function generateSelectedCreditorsAndInquiries() {
+                // Generate and display interactive HTML table for creditors
+                renderSelectedCreditorsInteractiveTable();
+                // Generate and display text output for creditors
+                generateSelectedCreditorsTextOutput();
+
+                // Generate and display interactive HTML table for inquiries
+                renderSelectedInquiriesInteractiveTable();
+                // Generate and display text output for inquiries
+                generateSelectedInquiriesTextOutput();
+            }
+
+
+            // Function to render the interactive HTML table for selected creditors
+            function renderSelectedCreditorsInteractiveTable() {
                 const selectedCreditorsData = [];
 
-                // Process selected Accounts ONLY
                 checkedAccounts.forEach(id => {
-                    const idParts = id.split('-'); // e.g., ['account', 'transunion', '0']
+                    const idParts = id.split('-');
                     const originalIndex = parseInt(idParts[2]);
                     const bureau = idParts[1];
 
                     const account = reportData.accounts[originalIndex];
-                    if (account && account[bureau]) { // Ensure account and bureau-specific data exists
+                    if (account && account[bureau]) {
                         selectedCreditorsData.push({
-                            id: id, // Store the checkbox ID for removal
-                            name: account.creditor,
-                            date_info: account[bureau]?.date_opened || 'N/A', // Using date_opened for accounts
+                            id: id,
+                            name: account.creditor || 'N/A',
+                            date_opened: account[bureau]?.date_opened || 'N/A',
                             account_number: account[bureau]?.account_number || 'N/A',
-                            bureau: bureau.charAt(0).toUpperCase() + bureau.slice(1) // Capitalize bureau name
+                            bureau: bureau.charAt(0).toUpperCase() + bureau.slice(1)
                         });
                     }
                 });
 
-
-                const tableContainer = document.getElementById('selected-creditors-table-container');
+                const interactiveTableContainer = document.getElementById('selected-creditors-interactive-table-container');
                 const selectedCreditorsSection = document.getElementById('selected-creditors-output');
 
                 if (selectedCreditorsData.length > 0) {
                     let tableHTML = `
-                        <table class="selected-creditors-table">
+                        <table class="selected-items-table">
                             <thead>
                                 <tr>
                                     <th>Creditor Name</th>
                                     <th>Bureau</th>
-                                    <th>Date (Opened/Inquiry)</th>
+                                    <th>Date Opened</th>
                                     <th>Account Number</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                        `;
-
+                    `;
                     selectedCreditorsData.forEach(item => {
                         tableHTML += `
                                 <tr>
                                     <td data-label="Creditor Name">${item.name}</td>
                                     <td data-label="Bureau">${item.bureau}</td>
-                                    <td data-label="Date (Opened/Inquiry)">${item.date_info}</td>
+                                    <td data-label="Date Opened">${item.date_opened}</td>
                                     <td data-label="Account Number">${item.account_number}</td>
-                                    <td data-label="Actions"><button class="remove-btn" onclick="removeCreditorOrInquiry(this)" data-id="${item.id}">Remove</button></td>
+                                    <td data-label="Actions"><button class="remove-btn" data-id="${item.id}" onclick="removeCreditorOrInquiry(this)">Remove</button></td>
                                 </tr>
-                            `;
+                        `;
                     });
-
                     tableHTML += `
                             </tbody>
                         </table>
-                        <div class="table-action-row">
-                            <button class="download-btn" onclick="downloadTableAsCSV('selected-creditors-table-container', 'Selected_Creditors_Report.csv', 'accounts')">Download as CSV</button>
-                        </div>
-                        `;
-                    tableContainer.innerHTML = tableHTML;
+                    `;
+                    interactiveTableContainer.innerHTML = tableHTML;
                     selectedCreditorsSection.style.display = 'block'; // Show the section
                 } else {
-                    tableContainer.innerHTML = '<p class="text-center-placeholder">No creditors selected yet.</p>';
-                    selectedCreditorsSection.style.display = 'block'; // Still show the section, but with the placeholder
+                    interactiveTableContainer.innerHTML = '<p class="text-center-placeholder">No creditors selected yet.</p>';
+                    selectedCreditorsSection.style.display = 'none'; // Hide the entire section if no data
                 }
             }
 
-            // Function to generate and display the table of selected inquiries only
-            function generateSelectedInquiriesTable() {
+
+            // Helper function to calculate maximum column widths for text output
+            function calculateMaxColumnWidths(dataRows, headers) {
+                const widths = headers.map(h => h.length); // Initialize with header lengths
+
+                dataRows.forEach(row => {
+                    row.forEach((cell, i) => {
+                        widths[i] = Math.max(widths[i], String(cell).length);
+                    });
+                });
+                return widths;
+            }
+
+            // Function to generate and display the text output for selected creditors
+            function generateSelectedCreditorsTextOutput() {
+                const selectedCreditorsData = [];
+
+                checkedAccounts.forEach(id => {
+                    const idParts = id.split('-');
+                    const originalIndex = parseInt(idParts[2]);
+                    const bureau = idParts[1];
+
+                    const account = reportData.accounts[originalIndex];
+                    if (account && account[bureau]) {
+                        selectedCreditorsData.push({
+                            name: account.creditor || 'N/A',
+                            bureau: bureau.charAt(0).toUpperCase() + bureau.slice(1),
+                            date_opened: account[bureau]?.date_opened || 'N/A',
+                            account_number: account[bureau]?.account_number || 'N/A'
+                        });
+                    }
+                });
+
+                const textArea = document.getElementById('selected-creditors-textarea');
+                const textOutputContainer = document.getElementById('selected-creditors-text-output-container');
+                const selectedCreditorsSection = document.getElementById('selected-creditors-output');
+
+                if (selectedCreditorsData.length > 0) {
+                    const headers = ["CREDITOR NAME", "BUREAU", "DATE OPENED", "ACCOUNT NUMBER"]; // Capitalized headers
+                    const dataRows = selectedCreditorsData.map(item => [
+                        item.name,
+                        item.bureau,
+                        item.date_opened,
+                        item.account_number
+                    ]);
+
+                    const columnWidths = calculateMaxColumnWidths(dataRows, headers);
+
+                    let textOutput = '';
+                    // Add headers, padded
+                    textOutput += headers.map((header, i) => header.padEnd(columnWidths[i] + 4)).join('') + '\n'; // Increased padding
+                    // Add a separator line
+                    textOutput += headers.map((header, i) => '-'.repeat(columnWidths[i] + 4)).join('') + '\n'; // Increased padding
+
+                    // Add data rows, padded
+                    dataRows.forEach(row => {
+                        textOutput += row.map((cell, i) => String(cell).padEnd(columnWidths[i] + 4)).join('') + '\n'; // Increased padding
+                    });
+
+                    textArea.value = textOutput;
+                    textOutputContainer.style.display = 'block'; // Show text output container
+                    selectedCreditorsSection.style.display = 'block'; // Ensure parent section is visible
+                } else {
+                    textArea.value = ''; // Clear text area if no items
+                    textOutputContainer.style.display = 'none'; // Hide text output container if no items
+                }
+            }
+
+            // Function to render the interactive HTML table for selected inquiries
+            function renderSelectedInquiriesInteractiveTable() {
                 const selectedInquiriesData = [];
 
-                // Process selected Inquiries ONLY
                 checkedInquiries.forEach(id => {
-                    const idParts = id.split('-'); // e.g., ['inquiry', 'transunion', '0']
+                    const idParts = id.split('-');
                     const originalIndex = parseInt(idParts[2]);
                     const bureau = idParts[1];
 
                     const inquiry = reportData.inquiries[originalIndex];
                     if (inquiry && inquiry.bureau.toLowerCase() === bureau.toLowerCase()) {
                         selectedInquiriesData.push({
-                            id: id, // Store the checkbox ID for removal
-                            name: inquiry.creditor,
+                            id: id,
+                            name: inquiry.creditor || 'N/A',
                             date: inquiry.date || 'N/A',
                             bureau: bureau.charAt(0).toUpperCase() + bureau.slice(1)
                         });
                     }
                 });
 
-                const tableContainer = document.getElementById('selected-inquiries-table-container');
+                const interactiveTableContainer = document.getElementById('selected-inquiries-interactive-table-container');
                 const selectedInquiriesSection = document.getElementById('selected-inquiries-output');
 
                 if (selectedInquiriesData.length > 0) {
                     let tableHTML = `
-                        <table class="selected-inquiries-table">
+                        <table class="selected-items-table">
                             <thead>
                                 <tr>
                                     <th>Creditor Name</th>
@@ -1267,87 +1862,98 @@
                                 </tr>
                             </thead>
                             <tbody>
-                        `;
-
+                    `;
                     selectedInquiriesData.forEach(item => {
                         tableHTML += `
                                 <tr>
                                     <td data-label="Creditor Name">${item.name}</td>
                                     <td data-label="Date of Inquiry">${item.date}</td>
                                     <td data-label="Bureau">${item.bureau}</td>
-                                    <td data-label="Actions"><button class="remove-btn" onclick="removeCreditorOrInquiry(this)" data-id="${item.id}">Remove</button></td>
+                                    <td data-label="Actions"><button class="remove-btn" data-id="${item.id}" onclick="removeCreditorOrInquiry(this)">Remove</button></td>
                                 </tr>
-                            `;
+                        `;
                     });
-
                     tableHTML += `
                             </tbody>
                         </table>
-                        <div class="table-action-row">
-                            <button class="download-btn" onclick="downloadTableAsCSV('selected-inquiries-table-container', 'Selected_Inquiries_Report.csv', 'inquiries')">Download as CSV</button>
-                        </div>
-                        `;
-                    tableContainer.innerHTML = tableHTML;
+                    `;
+                    interactiveTableContainer.innerHTML = tableHTML;
                     selectedInquiriesSection.style.display = 'block'; // Show the section
                 } else {
-                    tableContainer.innerHTML = '<p class="text-center-placeholder">No inquiries selected yet.</p>';
-                    selectedInquiriesSection.style.display = 'block'; // Still show the section, but with the placeholder
+                    interactiveTableContainer.innerHTML = '<p class="text-center-placeholder">No inquiries selected yet.</p>';
+                    selectedInquiriesSection.style.display = 'none'; // Hide the entire section if no data
                 }
             }
 
-            // Generic function to download an HTML table as CSV
-            window.downloadTableAsCSV = function (tableContainerId, filename, typeToClear) {
-                const tableContainer = document.getElementById(tableContainerId);
-                const table = tableContainer.querySelector('table');
+            // Function to generate and display the text output for selected inquiries
+            function generateSelectedInquiriesTextOutput() {
+                const selectedInquiriesData = [];
 
-                if (!table) {
-                    console.error('Table not found in container:', tableContainerId);
+                checkedInquiries.forEach(id => {
+                    const idParts = id.split('-');
+                    const originalIndex = parseInt(idParts[2]);
+                    const bureau = idParts[1];
+
+                    const inquiry = reportData.inquiries[originalIndex];
+                    if (inquiry && inquiry.bureau.toLowerCase() === bureau.toLowerCase()) {
+                        selectedInquiriesData.push({
+                            name: inquiry.creditor || 'N/A',
+                            date: inquiry.date || 'N/A',
+                            bureau: bureau.charAt(0).toUpperCase() + bureau.slice(1)
+                        });
+                    }
+                });
+
+                const textArea = document.getElementById('selected-inquiries-textarea');
+                const textOutputContainer = document.getElementById('selected-inquiries-text-output-container');
+                const selectedInquiriesSection = document.getElementById('selected-inquiries-output');
+
+
+                if (selectedInquiriesData.length > 0) {
+                    const headers = ["CREDITOR NAME", "DATE OF INQUIRY", "BUREAU"]; // Capitalized headers
+                    const dataRows = selectedInquiriesData.map(item => [
+                        item.name,
+                        item.date,
+                        item.bureau
+                    ]);
+
+                    const columnWidths = calculateMaxColumnWidths(dataRows, headers);
+
+                    let textOutput = '';
+                    // Add headers, padded
+                    textOutput += headers.map((header, i) => header.padEnd(columnWidths[i] + 4)).join('') + '\n'; // Increased padding
+                    // Add a separator line
+                    textOutput += headers.map((header, i) => '-'.repeat(columnWidths[i] + 4)).join('') + '\n';
+
+                    // Add data rows, padded
+                    dataRows.forEach(row => {
+                        textOutput += row.map((cell, i) => String(cell).padEnd(columnWidths[i] + 4)).join('') + '\n'; // Increased padding
+                    });
+
+                    textArea.value = textOutput;
+                    textOutputContainer.style.display = 'block'; // Show text output container
+                    selectedInquiriesSection.style.display = 'block'; // Ensure parent section is visible
+                } else {
+                    textArea.value = ''; // Clear text area if no items
+                    textOutputContainer.style.display = 'none'; // Hide text output container if no items
+                }
+            }
+
+
+            // Function to download text area content as CSV
+            window.downloadTextAreaAsCSV = function (textAreaId, filename) {
+                const textArea = document.getElementById(textAreaId);
+                if (!textArea) {
+                    console.error('Text area not found:', textAreaId);
                     return;
                 }
 
-                let csv = [];
-                const rows = table.querySelectorAll('tr');
+                const textContent = textArea.value; // Get the plain text content
 
-                // Get header column names and identify the 'Actions' column index
-                const headers = Array.from(rows[0].querySelectorAll('th'));
-                const actionColIndex = headers.findIndex(th => th.innerText.trim().toLowerCase() === 'actions');
-
-                // Process header row, skipping the 'Actions' column
-                const headerRowData = headers
-                    .filter((_, index) => index !== actionColIndex)
-                    .map(th => {
-                        let cellData = th.innerText.trim();
-                        cellData = cellData.replace(/"/g, '""');
-                        if (cellData.includes(',') || cellData.includes('\n')) {
-                            cellData = `"${cellData}"`;
-                        }
-                        return cellData;
-                    });
-                csv.push(headerRowData.join(','));
-
-
-                // Process data rows
-                for (let i = 1; i < rows.length; i++) { // Start from 1 to skip header row
-                    const row = rows[i];
-                    const cols = row.querySelectorAll('td');
-                    const rowData = [];
-                    for (let j = 0; j < cols.length; j++) {
-                        if (j === actionColIndex) { // Skip the 'Actions' column
-                            continue;
-                        }
-                        let cellData = cols[j].innerText.trim();
-                        // Handle commas and newlines in cell data
-                        cellData = cellData.replace(/"/g, '""'); // Escape double quotes
-                        if (cellData.includes(',') || cellData.includes('\n')) {
-                            cellData = `"${cellData}"`; // Enclose in double quotes if it contains comma or newline
-                        }
-                        rowData.push(cellData);
-                    }
-                    csv.push(rowData.join(','));
-                }
-
-                // Create a Blob containing the CSV data
-                const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                // Create a Blob containing the text data
+                const blob = new Blob([textContent], {
+                    type: 'text/csv;charset=utf-8;'
+                });
 
                 // Create a link element
                 const link = document.createElement('a');
@@ -1360,38 +1966,6 @@
 
                 // Clean up
                 document.body.removeChild(link);
-
-                // --- Resetting UI and clearing selections ---
-                let idsToUntick = new Set();
-                let tableSectionToClear = null;
-                let tableContainerPlaceholder = '';
-
-                if (typeToClear === 'accounts') {
-                    idsToUntick = new Set(checkedAccounts); // Create a copy to iterate
-                    checkedAccounts.clear();
-                    tableSectionToClear = document.getElementById('selected-creditors-output');
-                    tableContainerPlaceholder = '<p class="text-center-placeholder">No creditors selected yet.</p>';
-                } else if (typeToClear === 'inquiries') {
-                    idsToUntick = new Set(checkedInquiries); // Create a copy to iterate
-                    checkedInquiries.clear();
-                    tableSectionToClear = document.getElementById('selected-inquiries-output');
-                    tableContainerPlaceholder = '<p class="text-center-placeholder">No inquiries selected yet.</p>';
-                }
-
-                idsToUntick.forEach(id => {
-                    const checkbox = document.getElementById(id);
-                    if (checkbox) {
-                        checkbox.checked = false;
-                    }
-                });
-
-                if (tableSectionToClear) {
-                    const containerInsideSection = tableSectionToClear.querySelector(`#${tableContainerId}`);
-                    if (containerInsideSection) {
-                        containerInsideSection.innerHTML = tableContainerPlaceholder;
-                    }
-                    tableSectionToClear.style.display = 'none'; // Hide the section
-                }
             };
 
             // Function to remove a creditor or inquiry from the table and untick its checkbox
@@ -1401,12 +1975,14 @@
                 // Determine if it's an account or inquiry and remove from the correct Set
                 if (idToRemove.startsWith('account-')) {
                     checkedAccounts.delete(idToRemove);
-                    // Re-generate only the creditors table, as an account was removed
-                    generateSelectedCreditorsTable();
+                    // Re-generate both interactive and text outputs for creditors
+                    renderSelectedCreditorsInteractiveTable();
+                    generateSelectedCreditorsTextOutput();
                 } else if (idToRemove.startsWith('inquiry-')) {
                     checkedInquiries.delete(idToRemove);
-                    // Re-generate only the inquiries table, as an inquiry was removed
-                    generateSelectedInquiriesTable();
+                    // Re-generate both interactive and text outputs for inquiries
+                    renderSelectedInquiriesInteractiveTable();
+                    generateSelectedInquiriesTextOutput();
                 }
 
                 // Untick the original checkbox on the main display
@@ -1418,6 +1994,18 @@
                 console.log(`Removed ID: ${idToRemove}`);
                 console.log('Updated Checked Accounts IDs:', Array.from(checkedAccounts));
                 console.log('Updated Checked Inquiries IDs:', Array.from(checkedInquiries));
+
+                // If after removal, a section becomes empty, hide its text output container
+                if (checkedAccounts.size === 0) {
+                    document.getElementById('selected-creditors-text-output-container').style.display = 'none';
+                    document.getElementById('selected-creditors-output').style.display = 'none'; // Hide the entire section
+                    document.getElementById('selected-creditors-interactive-table-container').innerHTML = '<p class="text-center-placeholder">No creditors selected yet.</p>';
+                }
+                if (checkedInquiries.size === 0) {
+                    document.getElementById('selected-inquiries-text-output-container').style.display = 'none';
+                    document.getElementById('selected-inquiries-output').style.display = 'none'; // Hide the entire section
+                    document.getElementById('selected-inquiries-interactive-table-container').innerHTML = '<p class="text-center-placeholder">No inquiries selected yet.</p>';
+                }
             };
         });
     </script>
