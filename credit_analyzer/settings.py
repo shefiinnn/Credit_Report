@@ -25,7 +25,9 @@ SECRET_KEY = 'django-insecure-3_)0c37rt*ex$1)$ds=j$@o)eha6is%5tg+1*_2%upy1v@*ds9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost',
+    '127.0.0.1',
+    'credit-report-wqhl.onrender.com',]
 
 
 # Application definition
