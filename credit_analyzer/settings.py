@@ -25,9 +25,7 @@ SECRET_KEY = 'django-insecure-3_)0c37rt*ex$1)$ds=j$@o)eha6is%5tg+1*_2%upy1v@*ds9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost',
-    '127.0.0.1',
-    'credit-report-wqhl.onrender.com',]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -40,9 +38,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'reports',
+    'corsheaders',
 ]
 
+
+
+CORS_ALLOW_ALL_ORIGINS = True 
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -53,6 +57,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
 ]
+CORS_ALLOW_ALL_ORIGINS = True  
 
 ROOT_URLCONF = 'credit_analyzer.urls'
 
