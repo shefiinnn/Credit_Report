@@ -1368,7 +1368,7 @@
                     formData.append('pdf', uploadedFile, uploadedFile.name);
 
                     // Update this URL to your actual backend API endpoint
-                    const response = await fetch('/get_report/', {
+                    const response = await fetch('http://13.60.35.140/get_report/', {
                         method: 'POST',
                         headers: {
                             'accept': 'application/json'
