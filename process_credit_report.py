@@ -571,14 +571,13 @@ class CreditReportProcessor:
         
         return account_sections
     
+    
     def parse_account(self, account_text):
-        """Parse an individual account section into structured data"""
-        # Handle multi-line creditor names
         lines = account_text.split('\n')
         creditor_lines = []
         for i, line in enumerate(lines):
             line = line.strip()
-            if not line:  # Skip empty lines
+            if not line:
                 continue
             if i == 0 or (re.match(r'^[A-Z\s&.,\'"-]+$', line) and not re.search(r'Account #|High Balance|Balance Owed', line, re.IGNORECASE)):
                 creditor_lines.append(line)
@@ -587,16 +586,18 @@ class CreditReportProcessor:
         
         creditor = ' '.join(creditor_lines).strip()
         
-        # Dictionary to hold account data for all three bureaus
         account_data = {
             "creditor": creditor,
             "transunion": {},
             "experian": {},
             "equifax": {},
-            "payment_history": { "transunion": "", "experian": "", "equifax": "" }
+            "payment_history": { 
+                "transunion": {"months": [], "statuses": []}, 
+                "experian": {"months": [], "statuses": []}, 
+                "equifax": {"months": [], "statuses": []} 
+            }
         }
         
-        # Define key-value patterns to search for
         key_value_patterns = [
             (r'Account #\s*([^\n]*)', "account_number"),
             (r'High Balance:\s*([^\n]*)', "high_balance"),
@@ -622,105 +623,138 @@ class CreditReportProcessor:
             (r'Payment Frequency:\s*([^\n]*)', "payment_frequency")
         ]
         
-        # Extract data for each key pattern
         for pattern, key in key_value_patterns:
             matches = re.search(pattern, account_text)
             if matches:
                 value_text = matches.group(1).strip()
                 values = value_text.split()
                 
-                # Try to extract three values (one for each bureau)
                 bureaus = ["transunion", "experian", "equifax"]
                 
                 if len(values) >= 3:
                     for i, bureau in enumerate(bureaus):
-                        account_data[bureau][key] = self.clean_value(values[i].strip())
+                        if i < len(values):
+                            account_data[bureau][key] = self.clean_value(values[i].strip())
                 elif len(values) == 1:
-                    # If only one value, assign to all bureaus
                     for bureau in bureaus:
                         account_data[bureau][key] = self.clean_value(values[0].strip())
-         # ✅ Two-Year Payment History (Safe + Cleaned)
-                # ✅ Improved Two-Year Payment History (handles multi-page case)
-         # ✅ Improved Two-Year Payment History (handles multi-page case)
+        
+        # --- REFINED TWO-YEAR PAYMENT HISTORY EXTRACTION ---
         try:
             lines = account_text.splitlines()
-            history_start = None
+            history_start_index = -1
 
             for i, line in enumerate(lines):
                 if "Two-Year Payment History" in line:
-                    history_start = i + 1
+                    history_start_index = i
                     break
-
-            if history_start is not None:
-                buffer = []
+            
+            if history_start_index != -1:
+                # Store all month and status tokens found within the history section for each bureau
+                temp_extracted_months_per_bureau = {"transunion": [], "experian": [], "equifax": []}
+                temp_extracted_statuses_per_bureau = {"transunion": [], "experian": [], "equifax": []}
+                
                 current_bureau = None
+                
+                # Month/Year pattern: Captures 'Jan', 'Feb', ..., 'Dec', and '\'YY' (like '24, '25)
+                month_year_token_pattern = re.compile(r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|\'\d{2})", re.IGNORECASE)
+                
+                # Status pattern: Prioritize 'NO DATA'. Explicitly exclude 'NO' alone.
+                # If 'NO DATA' is not found, and only 'NO' appears, it implies a parsing error or missing data.
+                # We want to force it to be 'NO DATA' if it was meant to be, or rely on padding.
+                status_token_pattern = re.compile(r"(OK|30|60|90|120|150|CO|COLLECTION|NO\s*DATA)", re.IGNORECASE)
 
-                for line in lines[history_start:history_start + 50]:  # look across pages
-                    clean = line.strip()
-                    lower = clean.lower()
+                # Iterate through lines *after* the "Two-Year Payment History" header
+                for i in range(history_start_index + 1, min(len(lines), history_start_index + 100)):
+                    line = lines[i].strip()
+                    lower_line = line.lower()
 
-            # Skip junk
-                    if not clean or re.search(r'\d{1,2}:\d{2}\s*(AM|PM)', clean, re.IGNORECASE):
-                        continue
-
-            # Detect bureau label from line content
-                    if "transunion" in lower:
-                        current_bureau = "transunion"
-                        buffer = []
-                        continue
-                    elif "experian" in lower:
-                        current_bureau = "experian"
-                        buffer = []
-                        continue
-                    elif "equifax" in lower:
-                        current_bureau = "equifax"
-                        buffer = []
-                        continue
-
-            # Stop at unrelated sections
-                    if re.search(r'(Days Late|Account Description|Status|Remarks|Comments)', clean, re.IGNORECASE):
+                    # Stop parsing if we encounter a new section, ensuring no month/status pattern is found on this line
+                    if (re.search(r'(days late|account description|summary|inquiries|public information|account terms|tradelines|previous addresses|credit score)', lower_line, re.IGNORECASE) and
+                        not (month_year_token_pattern.search(line) or status_token_pattern.search(line))):
                         break
 
-                    if clean.lower() == "none":
-                        next_index = lines.index(line) + 1
-                        if next_index < len(lines):
-                            next_line = lines[next_index].strip().lower()
-                            if next_line == "reported" and current_bureau:
-                                account_data["payment_history"][current_bureau] = "NONE REPORTED"
-                                print(f"⚠️ {current_bureau.title()} 2Y History for {creditor}: NONE REPORTED\n")
-                                current_bureau = None
-                                continue
-            # Detect None Reported and save immediately
-                    if "none reported" in lower:
-                        if current_bureau:
-                            account_data["payment_history"][current_bureau] = "NONE REPORTED"
-                            print(f"⚠️ {current_bureau.title()} 2Y History for {creditor}: NONE REPORTED\n")
-                            current_bureau = None  # Stop collecting further
+                    # Detect bureau header
+                    if "transunion" in lower_line and "score" not in lower_line:
+                        current_bureau = "transunion"
+                        continue
+                    elif "experian" in lower_line and "score" not in lower_line:
+                        current_bureau = "experian"
+                        continue
+                    elif "equifax" in lower_line and "score" not in lower_line:
+                        current_bureau = "equifax"
+                        continue
+                    
+                    if current_bureau:
+                        # Handle "NONE REPORTED" (e.g., if a bureau has no history at all)
+                        if "none reported" in lower_line or "no history" in lower_line:
+                            temp_extracted_months_per_bureau[current_bureau] = []
+                            temp_extracted_statuses_per_bureau[current_bureau] = ["NONE REPORTED"]
+                            current_bureau = None
+                            continue
+
+                        # Extract month/year tokens
+                        found_months = month_year_token_pattern.findall(line)
+                        temp_extracted_months_per_bureau[current_bureau].extend([m.upper() for m in found_months])
+
+                        # Extract status tokens
+                        found_statuses = status_token_pattern.findall(line)
+                        # Process found statuses: If "NO" is found without "DATA", treat it as "NO DATA"
+                        processed_statuses = []
+                        for s in found_statuses:
+                            if s.upper() == 'NO':
+                                # This handles cases where OCR might split "NO DATA" or just see "NO"
+                                # and we want it to be "NO DATA" for consistency.
+                                processed_statuses.append('NO DATA')
+                            else:
+                                processed_statuses.append(s.upper())
+                        temp_extracted_statuses_per_bureau[current_bureau].extend(processed_statuses)
+                
+                # --- Final Processing and Alignment for each Bureau ---
+                for bureau in ["transunion", "experian", "equifax"]:
+                    extracted_months = temp_extracted_months_per_bureau[bureau]
+                    extracted_statuses = temp_extracted_statuses_per_bureau[bureau]
+
+                    if extracted_statuses and "NONE REPORTED" in extracted_statuses:
+                        account_data["payment_history"][bureau] = {"months": [], "statuses": "NONE REPORTED"}
+                        print(f"✅ {bureau.title()} 2Y History for {creditor}: NONE REPORTED\n")
                         continue
 
-            # Accumulate valid lines for current bureau
-                    if current_bureau:
-                        buffer.append(clean)
+                    max_history_length = 24
 
-                # Save if enough or last line reached
-                        if len(buffer) >= 3:
-                    # Clean buffer and assign
-                            cleaned = re.sub(r'(Page \d+ of \d+|https?://\S+|\d{1,2}/\d{1,2}/\d{4}.*$)', '', " ".join(buffer))
-                            normalized = " ".join(cleaned.strip().split())
-                            account_data["payment_history"][current_bureau] = normalized
-                            print(f"✅ {current_bureau.title()} 2Y History for {creditor}:\n{normalized}\n")
-                            buffer = []
-                            current_bureau = None
+                    final_months = [''] * max_history_length
+                    months_to_use = extracted_months[-max_history_length:]
+                    
+                    final_statuses = ['NO DATA'] * max_history_length
+                    statuses_to_use = extracted_statuses[-max_history_length:]
+                    
+                    # Populate final_months and final_statuses from the right
+                    for i in range(len(months_to_use)):
+                        final_months[max_history_length - len(months_to_use) + i] = months_to_use[i].replace("'", "")
+                    
+                    for i in range(len(statuses_to_use)):
+                        final_statuses[max_history_length - len(statuses_to_use) + i] = statuses_to_use[i]
+                    
+                    # This warning is for debugging purposes if you still see unexpected lengths
+                    if len(months_to_use) != len(statuses_to_use):
+                         print(f"⚠️ Warning: Mismatch in final aligned months ({len(months_to_use)}) and statuses ({len(statuses_to_use)}) for {bureau} - {creditor}. Padding 'NO DATA' for missing statuses.")
+
+                    account_data["payment_history"][bureau] = {
+                        "months": final_months,
+                        "statuses": final_statuses
+                    }
+                    print(f"✅ {bureau.title()} 2Y History for {creditor}:\nMonths: {final_months}\nStatuses: {final_statuses}\n")
 
             else:
-                print(f"❌ No 'Two-Year Payment History' found for {creditor}")
+                print(f"❌ No 'Two-Year Payment History' section found for {creditor}")
         except Exception as e:
             print(f"⚠️ Error extracting payment history for {creditor}: {e}")
-
-
-
+            import traceback
+            traceback.print_exc()
 
         return account_data
+
+
     
     def extract_public_information(self, text):
         print("🔍 Extracting public information...")

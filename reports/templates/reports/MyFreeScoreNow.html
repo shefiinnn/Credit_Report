@@ -52,6 +52,147 @@
             padding: 20px;
         }
 
+        /* General styling for selected items/sections */
+        .personal-info-field-data.selected,
+        #public-information-section.selected {
+            /* Subtle box shadow to make it "pop" */
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            /* Greenish glow */
+            /* Or a slightly bolder border */
+            border: 1px solid #4CAF50;
+            /* Green border */
+            /* Or a slightly lighter background */
+            background-color: #3f3f3f;
+            /* Lighter shade of your dark background */
+
+            /* Add a smooth transition for the visual effect */
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Base style for the items/sections when not selected (optional, to ensure no lingering effects) */
+        .personal-info-field-data,
+        #public-information-section {
+            border: 1px solid transparent;
+            /* Default transparent border */
+            background-color: transparent;
+            /* Default background */
+            box-shadow: none;
+            transition: all 0.2s ease-in-out;
+            /* Match transition for smooth deselection */
+        }
+
+        /* For your existing section-container style, make sure it plays well */
+        .section-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #333;
+            /* Your base background */
+            /* Ensure no conflicting border/shadow here if you're styling .selected on it */
+        }
+
+        /* Adjustments for personal info item layout with checkboxes */
+        .personal-info-item-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .personal-info-item-wrapper input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        /* Styling for the checkbox next to the bureau heading in Public Information */
+        .public-info-bureau-heading-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            /* Space between heading row and the table data */
+        }
+
+        .public-info-bureau-heading-row input[type="checkbox"] {
+            margin-right: 10px;
+            /* Space between checkbox and the H4 heading */
+        }
+
+        .public-info-bureau-heading-row h4 {
+            margin: 0;
+            /* Remove default margin from h4 to align better */
+            color: #eee;
+            /* Example color */
+        }
+
+        /* Ensure the public info data div also has a base style for the transition */
+        .public-info-bureau-data {
+            margin-left: 25px;
+            /* Indent the table content slightly */
+            padding: 10px;
+            border-radius: 5px;
+            background-color: transparent;
+            /* Default background */
+            border: 1px solid transparent;
+            /* Default border */
+            box-shadow: none;
+            transition: all 0.2s ease-in-out;
+            /* Smooth transition for the effect */
+        }
+
+        /* Apply the "pop up" styles when 'selected' class is present */
+        .public-info-bureau-data.selected {
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            /* Greenish glow */
+            border: 1px solid #4CAF50;
+            /* Green border */
+            background-color: #3f3f3f;
+            /* Lighter shade of your dark background */
+        }
+
+        .personal-info-field-data {
+            display: flex;
+            flex-grow: 1;
+            justify-content: space-between;
+            padding: 5px 0;
+            /* Add default styling here if you want it to always have a subtle look */
+            border-radius: 4px;
+            /* Rounded corners for the field data */
+            padding: 8px 10px;
+            /* Some padding inside the data box */
+        }
+
+        .personal-info-field-data .label {
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        /* For public info specific styles */
+        .public-info-bureau {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #555;
+            /* A subtle border for the bureau info itself */
+            border-radius: 5px;
+        }
+
+        .public-info-bureau h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #eee;
+        }
+
+        .public-info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .public-info-table td {
+            padding: 8px 0;
+            border-bottom: 1px dashed #555;
+        }
+
+        .public-info-table tr:last-child td {
+            border-bottom: none;
+        }
+
         .container {
             max-width: 1200px;
             margin: 20px auto;
@@ -113,15 +254,6 @@
             transition: var(--transition);
         }
 
-        .payment-history-block {
-            margin-top: 12px;
-        }
-
-        .payment-history-block h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
 
         .history-grid {
             display: flex;
@@ -369,6 +501,7 @@
             margin-bottom: 15px;
             padding: 15px 20px;
             transition: var(--transition);
+            overflow: hidden;
         }
 
         .account-item:hover,
@@ -377,27 +510,91 @@
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .payment-history-row {
-            margin-top: 10px;
+        .ph-cell {
+            width: 60px;
+            padding: 6px 4px;
+            text-align: center;
+            font-size: 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            border: 1px solid #444;
+            white-space: nowrap;
+        }
+
+        .ph-month-row .ph-cell {
+            background-color: #1e1f24;
+            color: #cfd8dc;
+        }
+
+        .no-data.full-width {
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #757575;
+            font-style: italic;
+        }
+
+        .payment-history-scroll {
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+        }
+
+        .payment-history-scroll-wrapper .ph-row {
+            display: grid;
+            grid-template-columns: repeat(24, 60px);
+            /* Match cell width */
+            gap: 4px;
+            width: max-content;
+        }
+
+        .payment-history-scroll-wrapper {
+            overflow-x: auto;
+            padding-bottom: 6px;
         }
 
         .ph-row {
-            display: flex;
-            flex-wrap: wrap;
+            display: inline-flex;
+            gap: 4px;
         }
 
-        .ph-cell {
-            width: 38px;
-            height: 24px;
+
+        .ph-cell.full-width {
+            grid-column: span 24;
             text-align: center;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin: 1px;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
+        }
+
+        .ph-cell.full-row-span {
+            flex-basis: 100%;
+            /* Makes this specific cell span the entire row */
+            flex-grow: 1;
+            flex-shrink: 0;
+            max-width: none;
+            /* Crucial: Remove max-width constraint for this spanning cell */
+            min-width: 0;
+            /* Allow it to shrink if needed */
+        }
+
+        .payment-history-row {
+            margin-top: 20px;
+            background-color: #3B474F;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: #fff;
+            box-sizing: border-box;
+            width: 100%;
             justify-content: center;
         }
+
+
+        .payment-history-row h4 {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
 
         /* Status blocks */
         .status-ok {
@@ -421,10 +618,10 @@
         }
 
         .ph-month {
-            background: transparent;
-            color: #333;
-            font-weight: 500;
+            background-color: #1e1f24;
+            color: #cfd8dc;
         }
+
 
 
         .account-header {
@@ -502,6 +699,7 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 10px 20px;
             margin-top: 10px;
+            overflow-x: auto;
         }
 
         .detail-item {
@@ -696,15 +894,6 @@
             margin-top: 10px;
         }
 
-        .payment-history-block {
-            margin-top: 12px;
-        }
-
-        .payment-history-block h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
 
         .month-status-grid {
             display: grid;
@@ -794,6 +983,12 @@
             /* Separator for rows */
         }
 
+        .status-no-data {
+            background-color: #607D8B;
+            /* Grey for unknown/no data */
+            color: #ddd;
+        }
+
         .public-info-table tr:last-child {
             border-bottom: none;
             /* No border for the last row */
@@ -831,7 +1026,7 @@
             background-color: #616161;
             cursor: not-allowed;
         }
-        
+
         .public-info-table td strong {
             color: var(--text-medium);
             /* Medium gray for labels (e.g., 'Type', 'Status') */
@@ -1173,7 +1368,7 @@
                     formData.append('pdf', uploadedFile, uploadedFile.name);
 
                     // Update this URL to your actual backend API endpoint
-                    const response = await fetch('http://13.60.35.140/get_report/', {
+                    const response = await fetch('/get_report/', {
                         method: 'POST',
                         headers: {
                             'accept': 'application/json'
@@ -1209,107 +1404,233 @@
                     analyzeBtn.disabled = false; // Re-enable button regardless of success/failure
                 }
             });
+            // Function to render personal information with individual checkboxes for each field
+            // Function to render personal information (no changes needed here from previous step)
+            function renderPersonalInfo() {
+                const personalInfo =
+                    reportData.personal_info?.transunion ||
+                    reportData.personal_info?.experian ||
+                    reportData.personal_info?.equifax || {};
+
+                return `
+        <div id="personal-info-section" class="section-container">
+            <h2 class="section-title">Personal Information</h2>
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="personal-info-item-wrapper">
+                        <input type="checkbox" id="pi-report-date-toggle" class="personal-info-field-toggle" data-target-id="personal-info-report-date-data" >
+                        <div id="personal-info-report-date-data" class="personal-info-field-data ">
+                            <span class="label">Report Date:</span>
+                            <span class="value">${personalInfo.report_date || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div class="personal-info-item-wrapper">
+                        <input type="checkbox" id="pi-name-toggle" class="personal-info-field-toggle" data-target-id="personal-info-name-data" >
+                        <div id="personal-info-name-data" class="personal-info-field-data ">
+                            <span class="label">Name:</span>
+                            <span class="value">${personalInfo.name || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div class="personal-info-item-wrapper">
+                        <input type="checkbox" id="pi-year-of-birth-toggle" class="personal-info-field-toggle" data-target-id="personal-info-year-of-birth-data" >
+                        <div id="personal-info-year-of-birth-data" class="personal-info-field-data ">
+                            <span class="label">Year of Birth:</span>
+                            <span class="value">${personalInfo.year_of_birth || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div class="personal-info-item-wrapper">
+                        <input type="checkbox" id="pi-current-address-toggle" class="personal-info-field-toggle" data-target-id="personal-info-current-address-data" >
+                        <div id="personal-info-current-address-data" class="personal-info-field-data ">
+                            <span class="label">Current Address:</span>
+                            <span class="value">${personalInfo.current_address || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+            }
+
+            // renderSummary function (no changes needed here)
+            function renderSummary(bureau) {
+                const scores = reportData?.scores || {
+                    transunion: 'N/A',
+                    experian: 'N/A',
+                    equifax: 'N/A'
+                };
+
+                const summary = reportData.summary || {};
+
+                return `
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Credit Overview</h3>
+                <div class="summary-item">
+                    <span class="label">Total Accounts:</span>
+                    <span class="value">${summary[bureau]?.total_accounts || '0'}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Open Accounts:</span>
+                    <span class="value">${summary[bureau]?.open_accounts || '0'}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Closed Accounts:</span>
+                    <span class="value">${summary[bureau]?.closed_accounts || '0'}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Derogatory Marks:</span>
+                    <span class="value">${summary[bureau]?.derogatory || '0'}</span>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Balances</h3>
+                <div class="summary-item">
+                    <span class="label">Total Balances:</span>
+                    <span class="value">$${summary[bureau]?.balances || '0'}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Monthly Payments:</span>
+                    <span class="value">$${summary[bureau]?.monthly_payments || '0'}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Past Due Amounts:</span>
+                    <span class="value">$${summary[bureau]?.delinquent || '0'}</span>
+                </div>
+            </div>
+        </div>
+    `;
+            }
+
+
+            // Modified renderPublicInformation function to include the checkbox next to the bureau heading
+            function renderPublicInformation(publicInfo, selectedBureau) {
+                const container = document.getElementById("public-info-content");
+                if (!publicInfo) {
+                    container.innerHTML = "<p>No public information available.</p>";
+                    return;
+                }
+
+                let html = "";
+                const info = publicInfo[selectedBureau]; // Get info for the *selected* bureau
+
+                if (info && Object.keys(info).length > 0) {
+                    html += `
+            <div class="public-info-bureau-container">
+                <div class="public-info-bureau-heading-row">
+                    <input type="checkbox" id="pi-bureau-toggle-${selectedBureau}" class="public-info-bureau-toggle" >
+                    <h4>${selectedBureau.charAt(0).toUpperCase() + selectedBureau.slice(1)}</h4>
+                </div>
+                <div id="public-info-bureau-data-${selectedBureau}" class="public-info-bureau-data ">
+                    <table class="public-info-table">
+                        <tr><td><strong>Type</strong></td><td>${info.type || 'N/A'}</td></tr>
+                        <tr><td><strong>Status</strong></td><td>${info.status || 'N/A'}</td></tr>
+                        <tr><td><strong>Date Filed/Reported</strong></td><td>${info.date_filed || 'N/A'}</td></tr>
+                        <tr><td><strong>Reference #</strong></td><td>${info.reference || 'N/A'}</td></tr>
+                    </table>
+                </div>
+            </div>
+        `;
+                } else {
+                    html = `<p>No public information available for ${selectedBureau.charAt(0).toUpperCase() + selectedBureau.slice(1)}.</p>`;
+                }
+
+                container.innerHTML = html;
+
+                // --- NEW: Add event listener for the public info bureau checkbox after rendering ---
+                const publicBureauCheckbox = document.getElementById(`pi-bureau-toggle-${selectedBureau}`);
+                const publicBureauData = document.getElementById(`public-info-bureau-data-${selectedBureau}`);
+                if (publicBureauCheckbox && publicBureauData) {
+                    publicBureauCheckbox.addEventListener('change', function () {
+                        if (this.checked) {
+                            publicBureauData.classList.add('selected');
+                        } else {
+                            publicBureauData.classList.remove('selected');
+                        }
+                    });
+                    // Initial state is already handled by adding 'selected' class in the HTML
+                }
+            }
+
 
             function displayResults(bureau) {
                 if (!reportData) return;
 
                 let resultsHTML = `
-                    <h2 class="section-title">Overall Summary</h2>
-                    <div id="credit-summary-section">
-                        ${renderSummary(bureau)}
-                    </div>
+        <div class="global-info-toggles">
+            </div>
 
-                    <div class="filter-options">
-                        <div class="checkbox-container">
-                            <input type="checkbox" id="show-only-derogatory">
-                            <label for="show-only-derogatory">Show Only Derogatory Accounts</label>
-                        </div>
-                        <div class="select-container">
-                            <label for="account-status-filter">Account Status:</label>
-                            <select id="account-status-filter">
-                                <option value="all">All</option>
-                                <option value="open">Open</option>
-                                <option value="closed">Closed</option>
-                            </select>
-                        </div>
-                    </div>
+        <h2 class="section-title">Bureau Specifics</h2>
+        <div class="bureau-switch">
+            <button class="bureau-btn ${bureau === 'transunion' ? 'active' : ''}" data-bureau="transunion">TransUnion</button>
+            <button class="bureau-btn ${bureau === 'experian' ? 'active' : ''}" data-bureau="experian">Experian</button>
+            <button class="bureau-btn ${bureau === 'equifax' ? 'active' : ''}" data-bureau="equifax">Equifax</button>
+        </div>
 
-                    <h2 class="section-title">Bureau Specifics</h2>
-                    <div class="bureau-switch">
-                        <button class="bureau-btn ${bureau === 'transunion' ? 'active' : ''}" data-bureau="transunion">TransUnion</button>
-                        <button class="bureau-btn ${bureau === 'experian' ? 'active' : ''}" data-bureau="experian">Experian</button>
-                        <button class="bureau-btn ${bureau === 'equifax' ? 'active' : ''}" data-bureau="equifax">Equifax</button>
-                    </div>
+        <h2 class="section-title">Overall Summary</h2>
+        <div id="credit-summary-section">
+            ${renderSummary(bureau)}
+        </div>
 
-                    <div id="transunion-content" class="bureau-content ${bureau === 'transunion' ? 'active' : ''}" data-bureau="transunion">
-                        <h3 class="section-title">TransUnion Accounts</h3>
-                        <div class="account-section" id="transunion-accounts">
-                            ${renderBureauAccounts(reportData.accounts, 'transunion')}
-                        </div>
-                        <h3 class="section-title">TransUnion Recent Inquiries</h3>
-                        <div class="inquiries-list" id="transunion-inquiries">
-                            ${renderBureauInquiries(reportData.inquiries, 'transunion')}
-                        </div>
-                    </div>
+        ${renderPersonalInfo()} 
+        <div class="filter-options">
+            <div class="checkbox-container">
+                <input type="checkbox" id="show-only-derogatory">
+                <label for="show-only-derogatory">Show Only Derogatory Accounts</label>
+            </div>
+            <div class="select-container">
+                <label for="account-status-filter">Account Status:</label>
+                <select id="account-status-filter">
+                    <option value="all">All</option>
+                    <option value="open">Open</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+        </div>
+        <div id="bureau-dynamic-content"></div>
 
-                    <div id="experian-content" class="bureau-content ${bureau === 'experian' ? 'active' : ''}" data-bureau="experian">
-                        <h3 class="section-title">Experian Accounts</h3>
-                        <div class="account-section" id="experian-accounts">
-                            ${renderBureauAccounts(reportData.accounts, 'experian')}
-                        </div>
-                        <h3 class="section-title">Experian Recent Inquiries</h3>
-                        <div class="inquiries-list" id="experian-inquiries">
-                            ${renderBureauInquiries(reportData.inquiries, 'experian')}
-                        </div>
-                    </div>
 
-                    <div id="equifax-content" class="bureau-content ${bureau === 'equifax' ? 'active' : ''}" data-bureau="equifax">
-                        <h3 class="section-title">Equifax Accounts</h3>
-                        <div class="account-section" id="equifax-accounts">
-                            ${renderBureauAccounts(reportData.accounts, 'equifax')}
-                        </div>
-                        <h3 class="section-title">Equifax Recent Inquiries</h3>
-                        <div class="inquiries-list" id="equifax-inquiries">
-                            ${renderBureauInquiries(reportData.inquiries, 'equifax')}
-                        </div>
-                    </div>
-                    <div id="public-information" class="public-info-section">
-  <h2>Public Information</h2>
-  <div id="public-info-content"></div>
-</div>
+        <div id="public-information-section" class="public-info-section section-container">
+            <h2 class="section-title">Public Information</h2>
+            <div id="public-info-content"></div>
+        </div>
 
-                    <div class="button-group-tables">
-                        <button id="generate-selected-creditors-btn" class="btn">Generate Selected Creditors Table</button>
-                        <button id="generate-selected-inquiries-btn" class="btn">Generate Selected Inquiries Table</button>
-                    </div>
+        <div class="button-group-tables">
+            <button id="generate-selected-creditors-btn" class="btn">Generate Selected Creditors Table</button>
+            <button id="generate-selected-inquiries-btn" class="btn">Generate Selected Inquiries Table</button>
+        </div>
 
-                    <div id="selected-creditors-output" class="selected-creditors-section">
-                        <h3>Selected Creditors</h3>
-                        <div id="selected-creditors-interactive-table-container">
-                            <p class="text-center-placeholder">No creditors selected yet.</p>
-                        </div>
-                        <div id="selected-creditors-text-output-container" class="table-text-output-container">
-                            <h4>Copy-Paste Friendly Text Output:</h4>
-                            <textarea id="selected-creditors-textarea" class="table-text-output" readonly></textarea>
-                            <button class="download-csv-btn" onclick="downloadTextAreaAsCSV('selected-creditors-textarea', 'Selected_Creditors_Report.csv')">Download as CSV</button>
-                        </div>
-                    </div>
+        <div id="selected-creditors-output" class="selected-creditors-section">
+            <h3>Selected Creditors</h3>
+            <div id="selected-creditors-interactive-table-container">
+                <p class="text-center-placeholder">No creditors selected yet.</p>
+            </div>
+            <div id="selected-creditors-text-output-container" class="table-text-output-container">
+                <h4>Copy-Paste Friendly Text Output:</h4>
+                <textarea id="selected-creditors-textarea" class="table-text-output" readonly></textarea>
+                <button class="download-csv-btn" onclick="downloadTextAreaAsCSV('selected-creditors-textarea', 'Selected_Creditors_Report.csv')">Download as CSV</button>
+            </div>
+        </div>
 
-                    <div id="selected-inquiries-output" class="selected-inquiries-section">
-                        <h3>Selected Inquiries</h3>
-                        <div id="selected-inquiries-interactive-table-container">
-                            <p class="text-center-placeholder">No inquiries selected yet.</p>
-                        </div>
-                        <div id="selected-inquiries-text-output-container" class="table-text-output-container">
-                            <h4>Copy-Paste Friendly Text Output:</h4>
-                            <textarea id="selected-inquiries-textarea" class="table-text-output" readonly></textarea>
-                            <button class="download-csv-btn" onclick="downloadTextAreaAsCSV('selected-inquiries-textarea', 'Selected_Inquiries_Report.csv')">Download as CSV</button>
-                        </div>
-                    </div>
-                `;
+        <div id="selected-inquiries-output" class="selected-inquiries-section">
+            <h3>Selected Inquiries</h3>
+            <div id="selected-inquiries-interactive-table-container">
+                <p class="text-center-placeholder">No inquiries selected yet.</p>
+            </div>
+            <div id="selected-inquiries-text-output-container" class="table-text-output-container">
+                <h4>Copy-Paste Friendly Text Output:</h4>
+                <textarea id="selected-inquiries-textarea" class="table-text-output" readonly></textarea>
+                <button class="download-csv-btn" onclick="downloadTextAreaAsCSV('selected-inquiries-textarea', 'Selected_Inquiries_Report.csv')">Download as CSV</button>
+            </div>
+        </div>
+    `;
 
                 document.getElementById("results-section").innerHTML = resultsHTML;
-                renderPublicInformation(reportData.public_information);
+                document.getElementById("bureau-dynamic-content").innerHTML = renderBureauDynamicContent(bureau);
+
+
+                // Public Information: Initial render based on the default bureau
+                renderPublicInformation(reportData.public_information, bureau);
 
 
                 // Initially hide text output containers if no data is present
@@ -1324,31 +1645,34 @@
                 // Attach event listeners for all dynamically created elements after rendering
                 attachEventListeners();
 
-                // Bureau button logic (re-attach listeners as content is re-rendered)
-                document.querySelectorAll('.bureau-btn').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const selectedBureau = this.getAttribute('data-bureau');
-
-                        // Update active button
-                        document.querySelectorAll('.bureau-btn').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-
-                        // Toggle bureau content
-                        document.querySelectorAll('.bureau-content').forEach(c => c.classList.remove('active'));
-                        document.getElementById(`${selectedBureau}-content`).classList.add('active');
-
-                        // Update summary dynamically (if needed, or just let it be static if personal info is universal)
-                        document.getElementById('credit-summary-section').innerHTML = renderSummary(selectedBureau);
-
-                        // Re-render accounts and inquiries for the selected bureau, preserving checkbox states
-                        updateAccountDisplay(selectedBureau);
-                        updateInquiryDisplay(selectedBureau);
-
-                        // Re-attach event listeners after updating content
-                        attachEventListeners();
-                    });
+                // --- Event listeners for individual personal info field toggles ---
+                document.querySelectorAll('.personal-info-field-toggle').forEach(checkbox => {
+                    const targetId = checkbox.getAttribute('data-target-id');
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        checkbox.addEventListener('change', function () {
+                            if (this.checked) {
+                                targetElement.classList.add('selected');
+                            } else {
+                                targetElement.classList.remove('selected');
+                            }
+                        });
+                        // Initial state is already handled by adding 'selected' class in renderPersonalInfo
+                    }
                 });
 
+                // --- The global 'toggle-public-info' checkbox is now removed,
+                //     its functionality is moved to the renderPublicInformation function
+                //     for bureau-specific toggles ---
+
+
+                document.addEventListener('click', function (e) {
+                    const btn = e.target.closest('.bureau-btn');
+                    if (!btn) return;
+
+                    const selectedBureau = btn.getAttribute('data-bureau');
+                    displayResults(selectedBureau);  // ✅ This alone is enough
+                });
                 // Attach event listener for the global "Show Only Derogatory Accounts" checkbox
                 document.getElementById('show-only-derogatory').addEventListener('change', function () {
                     const currentBureau = document.querySelector('.bureau-btn.active').getAttribute('data-bureau');
@@ -1371,162 +1695,92 @@
                 // Attach event listener for the new "Generate Selected Inquiries Table" button
                 document.getElementById('generate-selected-inquiries-btn').addEventListener('click', generateSelectedCreditorsAndInquiries);
             }
-
-            function renderPublicInformation(publicInfo) {
-                const container = document.getElementById("public-info-content");
-                if (!publicInfo) {
-                    container.innerHTML = "<p>No public information available.</p>";
-                    return;
-                }
-
-                let html = "";
-
-                const bureaus = ["transunion", "experian", "equifax"];
-                bureaus.forEach(bureau => {
-                    const info = publicInfo[bureau];
-                    if (!info || Object.keys(info).length === 0) return;
-
-                    html += `
-        <div class="public-info-bureau">
-          <h4>${bureau.charAt(0).toUpperCase() + bureau.slice(1)}</h4>
-          <table class="public-info-table">
-            <tr><td><strong>Type</strong></td><td>${info.type || 'N/A'}</td></tr>
-            <tr><td><strong>Status</strong></td><td>${info.status || 'N/A'}</td></tr>
-            <tr><td><strong>Date Filed/Reported</strong></td><td>${info.date_filed || 'N/A'}</td></tr>
-            <tr><td><strong>Reference #</strong></td><td>${info.reference || 'N/A'}</td></tr>
-          </table>
+            function renderBureauDynamicContent(bureau) {
+                return `
+        <div id="${bureau}-content" class="bureau-content active" data-bureau="${bureau}">
+            <h3 class="section-title">${bureau.charAt(0).toUpperCase() + bureau.slice(1)} Accounts</h3>
+            <div class="account-section" id="${bureau}-accounts">
+                ${renderBureauAccounts(reportData.accounts, bureau)}
+            </div>
+            <h3 class="section-title">${bureau.charAt(0).toUpperCase() + bureau.slice(1)} Recent Inquiries</h3>
+            <div class="inquiries-list" id="${bureau}-inquiries">
+                ${renderBureauInquiries(reportData.inquiries, bureau)}
+            </div>
         </div>
-      `;
-                });
-
-                container.innerHTML = html || "<p>No public information available.</p>";
+    `;
             }
 
-            function renderPaymentHistory(historyText, bureau) {
-                if (!historyText || historyText.trim() === "") return "";
 
-                const cleaned = historyText.trim().toUpperCase();
+            // renderPaymentHistory function to show months and statuses from parsed data
+            function renderPaymentHistory(historyData, bureau) {
+                // Check if historyData is null, undefined, or an empty object for months/statuses
+                if (!historyData || (!historyData.months && !historyData.statuses)) {
+                    return ""; // No data to render
+                }
 
-                // ✅ Show only a simple "None Reported" if that's the content
-                if (cleaned === "NONE REPORTED") {
+                const months = historyData.months || [];
+                const statuses = historyData.statuses || [];
+
+                // Handle "NONE REPORTED" case as a special string in statuses
+                // The Python parser sets statuses to "NONE REPORTED" as a string, not an array containing it.
+                if (typeof statuses === 'string' && statuses === "NONE REPORTED") {
                     return `
+                    <br>
             <div class="payment-history-row">
                 <h4>${bureau} Two-Year Payment History</h4>
+                <div class="payment-history-scroll-wrapper">
                 <div class="ph-row ph-status-row">
-                    <div class="ph-cell status-unknown">None Reported</div>
+                    <div class="ph-cell status-unknown no-data full-width">None Reported</div>
                 </div>
             </div>
         `;
                 }
 
-                // List of valid status values
-                const validStatuses = new Set(["OK", "30", "60", "90", "120", "150", "CO", "COLLECTION"]);
+                // If statuses is an empty array or contains only "NO DATA FOUND" from Python
+                if (statuses.length === 0 || (statuses.length === 1 && statuses[0] === "NO DATA FOUND")) {
+                    return `
+            <div class="payment-history-row">
+                <h4>${bureau} Two-Year Payment History</h4>
+                <div class="ph-row ph-status-row">
+                    <div class="ph-cell status-unknown no-data full-width">No Data Found</div>
+                </div>
+            </div>
+        `;
+                }
 
-                // Filter and normalize tokens
-                const statuses = cleaned
-                    .split(/\s+/)
-                    .filter(token =>
-                        validStatuses.has(token) // ✅ Keep only valid statuses
-                    );
 
-                if (statuses.length === 0) return ""; // Nothing to display
+                // Determine the number of cells to display. It should typically be 24 from Python.
+                // Use Math.max in case months or statuses array somehow ends up longer, though ideally Python ensures consistency.
+                const numCellsToDisplay = Math.max(months.length, statuses.length);
 
                 let html = `
         <div class="payment-history-row">
             <h4>${bureau} Two-Year Payment History</h4>
-            <div class="ph-row ph-status-row">`;
+            <div class="ph-row ph-month-row">`; // Row for month names
 
-                statuses.forEach(status => {
-                    let className = "status-ok";
+                // Render months
+                for (let i = 0; i < numCellsToDisplay; i++) {
+                    const month = months[i] || ''; // Use empty string if no month data for this index (should be rare if Python pads correctly)
+                    html += `<div class="ph-cell ph-month">${month}</div>`;
+                }
+
+                html += `</div>
+            <div class="ph-row ph-status-row">`; // Row for statuses
+
+                // Render statuses
+                for (let i = 0; i < numCellsToDisplay; i++) {
+                    const status = statuses[i] || 'NO DATA'; // Default to 'NO DATA' if status is missing for this index (should be rare if Python pads correctly)
+                    let className = "status-ok"; // Default
                     if (["30", "60", "90", "120", "150"].includes(status)) className = "status-late";
                     else if (["CO", "COLLECTION"].includes(status)) className = "status-chargeoff";
+                    else if (status === "NO DATA" || status === "") className = "status-no-data"; // Also handle empty string from month padding
 
                     html += `<div class="ph-cell ${className}">${status}</div>`;
-                });
+                }
 
-                html += `</div></div>`;
+                html += `</div></div></div>`;
                 return html;
             }
-
-
-
-
-
-            function renderSummary(bureau) {
-                // Pull static personal info from TransUnion (or fallback)
-                const personalInfo =
-                    reportData.personal_info?.transunion ||
-                    reportData.personal_info?.experian ||
-                    reportData.personal_info?.equifax || {};
-
-                const scores = reportData?.scores || {
-                    transunion: 'N/A',
-                    experian: 'N/A',
-                    equifax: 'N/A'
-                };
-
-                const summary = reportData.summary || {};
-
-                return `
-                    <div class="summary-cards">
-                        <div class="summary-card">
-                            <h3>Personal Information</h3>
-                            <div class="summary-item">
-    <span class="label">Report Date:</span>
-    <span class="value">${personalInfo.report_date || 'N/A'}</span>
-</div>
-                           <div class="summary-item">
-    <span class="label">Name:</span>
-    <span class="value">${personalInfo.name || 'N/A'}</span>
-</div>
-                            <div class="summary-item">
-    <span class="label">Year of Birth:</span>
-    <span class="value">${personalInfo.year_of_birth || 'N/A'}</span>
-</div>
-<div class="summary-item">
-    <span class="label">Current Address:</span>
-    <span class="value">${personalInfo.current_address || 'N/A'}</span>
-</div>
-                        </div>
-                        <div class="summary-card">
-                            <h3>Credit Overview</h3>
-                            <div class="summary-item">
-                                <span class="label">Total Accounts:</span>
-                                <span class="value">${summary[bureau]?.total_accounts || '0'}</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="label">Open Accounts:</span>
-                                <span class="value">${summary[bureau]?.open_accounts || '0'}</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="label">Closed Accounts:</span>
-                                <span class="value">${summary[bureau]?.closed_accounts || '0'}</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="label">Derogatory Marks:</span>
-                                <span class="value">${summary[bureau]?.derogatory || '0'}</span>
-                            </div>
-                        </div>
-
-                        <div class="summary-card">
-                            <h3>Balances</h3>
-                            <div class="summary-item">
-                                <span class="label">Total Balances:</span>
-                                <span class="value">$${summary[bureau]?.balances || '0'}</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="label">Monthly Payments:</span>
-                                <span class="value">$${summary[bureau]?.monthly_payments || '0'}</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="label">Past Due Amounts:</span>
-                                <span class="value">$${summary[bureau]?.delinquent || '0'}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
             function renderBureauAccounts(accounts, bureau, showOnlyDerogatory = false) {
                 if (!accounts || accounts.length === 0) return '<p class="text-center-placeholder">No accounts found</p>';
 
@@ -1534,7 +1788,8 @@
 
                 let filteredAccounts = accounts.filter(account =>
                     account[bureau] &&
-                    Object.keys(account[bureau]).length > 0
+                    account[bureau].account_number &&  // Must have an account number
+                    account[bureau].account_number.trim() !== ''  // Not empty string
                 );
 
                 if (showOnlyDerogatory) {
@@ -1589,7 +1844,12 @@
         </div>
         <div class="account-details">
             ${renderAccountDetails(account[bureau])}
-            ${renderPaymentHistory(history, bureau.charAt(0).toUpperCase() + bureau.slice(1))}
+            </div>
+
+            <div class="payment-history-scroll-wrapper">
+    ${renderPaymentHistory(history, bureau.charAt(0).toUpperCase() + bureau.slice(1))}
+</div>
+
         </div>
     </div>
 `;
