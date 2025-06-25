@@ -42,181 +42,388 @@ class CreditReportProcessor:
             self.output_dir = output_dir
             self.json_output = os.path.join(output_dir, "credit_report.json")
             self.excel_output = os.path.join(output_dir, "credit_report.xlsx")
-        
+
         if not self.pdf_path:
             raise ValueError("PDF path is required.")
-            
+
         os.makedirs(self.output_dir, exist_ok=True)
         self.initialize_credit_report()
 
         print(f"Processing credit report: {self.pdf_path}")
-        
-        # Extract text from PDF
-        text = self.extract_lines_from_pdf()
+
+        # ✅ Extract both text and page
+        text, page = self.extract_lines_from_pdf()
         if not text:
             print("Failed to extract text from PDF")
             return False
-        
-        # Parse the text into structured data
+
+        # ✅ Pass both to parser
         print("Parsing credit report data...")
-        self.parse_credit_report(text)
-        
+        self.parse_credit_report(text, page)
+
         # Save data to JSON
         print(f"Saving JSON to {self.json_output}...")
         self.save_json()
-        
+
         # Create Excel file with multiple sheets
         print(f"Creating Excel file {self.excel_output}")
         self.create_excel()
-        
-        print("Processing complete!")
-        return True
 
+        print("Processing complete!")
+        
+        return True
+    
     def extract_lines_from_pdf(self):
-        """Extract text from PDF using multiple methods and choose the best result"""
+        """Extract text from PDF using pdfplumber and return both text and first page object"""
         if not os.path.exists(self.pdf_path):
             print(f"Error: PDF file {self.pdf_path} not found")
-            return None
-        
+            return None, None  # Return both values
+
         print("Extracting text from PDF...")
-        
-        # Try pdfplumber first (usually better for table-structured data)
+
         try:
             with pdfplumber.open(self.pdf_path) as pdf:
                 text = ""
+                first_page = pdf.pages[0] if len(pdf.pages) > 0 else None
+
                 for page in pdf.pages:
                     page_text = page.extract_text()
                     if page_text:
                         text += page_text + "\n\n"
-            
-            if len(text) > 1000:  # Assume we have good content if text is substantial
+
+            if len(text) > 1000 and first_page:
                 print("Successfully extracted text with pdfplumber")
-                return text
+                return text, first_page  # ✅ return both
         except Exception as e:
             print(f"pdfplumber extraction error: {e}")
-        
-        # Fall back to PyPDF2
+
+        # Fall back to PyPDF2 (though coordinates will not be supported)
         try:
             with open(self.pdf_path, 'rb') as file:
                 reader = PyPDF2.PdfReader(file)
                 text = ""
                 for page in reader.pages:
-                    text += page.extract_text() + "\n\n"
-            
+                    page_text = page.extract_text()
+                    if page_text:
+                        text += page_text + "\n\n"
+
             if len(text) > 1000:
                 print("Successfully extracted text with PyPDF2")
-                return text
+                return text, None  # No page object available
             else:
                 print("Text extraction yielded insufficient content")
         except Exception as e:
             print(f"PyPDF2 extraction error: {e}")
-        
-        return None
 
-    def parse_credit_report(self, text):
+        return None, None 
+
+    def parse_credit_report(self, text,page):
         """Parse the entire credit report text into structured data"""
         lines = text.splitlines()
-        self.extract_personal_info(lines)
+        self.extract_personal_info(lines,page)
         self.extract_summary(text)
         self.extract_accounts_data(text)
-        self.extract_collections(text)  # New method to extract collections
+        self.extract_collections(text)  
         self.extract_inquiries(text)
         self.extract_public_information(text)
-        
-        # Update summary with inquiry counts after extraction
         self.update_inquiry_counts()
     
-    def extract_personal_info(self, lines):
-        """Extract personal information from lines"""
-        bureaus = ["transunion", "experian", "equifax"]
+    def extract_personal_info(self, lines, page):
+        """Extract personal information from lines and pdfplumber page"""
+        import re
+        import json
+        from collections import defaultdict
+        from sklearn.cluster import KMeans
+        import numpy as np
 
-    # ✅ REQUIRED initialization to avoid KeyError
+        bureaus = ["transunion", "experian", "equifax"]
+        words = page.extract_words()
         self.credit_report["personal_info"] = {
             "transunion": {},
             "experian": {},
             "equifax": {}
         }
-        
-        for line in lines:# Extract name for each bureau
-            if line.strip().lower().startswith("name"):
-                name_line = line.strip()
-                name_parts = name_line.split()[1:]
-                # skip the word "Name"
-    # Join 3 parts per bureau heuristically (adjust if needed)
-                t_name = " ".join(name_parts[0:3])
-                e_name = " ".join(name_parts[3:6]) if len(name_parts) >= 6 else "N/A"
-                q_name = " ".join(name_parts[6:]) if len(name_parts) >= 7 else "N/A"
-                self.credit_report["personal_info"]["transunion"]["name"] = t_name
-                self.credit_report["personal_info"]["experian"]["name"] = e_name
-                self.credit_report["personal_info"]["equifax"]["name"] = q_name
-                print("✅ Extracted names:", t_name, e_name, q_name)
+
+        # ✅ Extract Name
+        name_start = name_end = None
+
+        for word in words:
+            text = word["text"].lower()
+            if "name" in text and name_start is None:
+                name_start = word["top"] - 1
+            elif name_start is not None and any(k in text for k in ["also", "date", "consumer", "transunion", "equifax", "experian", "https", "statement"]):
+                name_end = word["top"]
                 break
 
-        # Extract DOB
-        for line in lines:
-            dob_match = re.search(r'Date of Birth\s+(\d{4})', line)
-            if dob_match:
+        if name_start is None or name_end is None:
+            print("⚠️ Could not locate name section.")
+        else:
+            name_words = [
+                w for w in words
+                if name_start <= w["top"] < name_end and w["text"].lower() != "name"
+            ]
+
+            if len(name_words) < 6:
+                print("⚠️ Not enough name words to cluster.")
+            else:
+                # Cluster by x0 to map to bureaus
+                name_x = np.array([[w["x0"]] for w in name_words])
+                kmeans = KMeans(n_clusters=3, random_state=42).fit(name_x)
+                labels = kmeans.labels_
+
+                # Map clusters to bureaus
+                cluster_centers = sorted([(i, c[0]) for i, c in enumerate(kmeans.cluster_centers_)], key=lambda x: x[1])
+                cluster_to_bureau = {
+                    cluster_centers[0][0]: "transunion",
+                    cluster_centers[1][0]: "experian",
+                    cluster_centers[2][0]: "equifax"
+                }
+
+                # Group vertically like address/employer
+                name_lines = {
+                    "transunion": defaultdict(list),
+                    "experian": defaultdict(list),
+                    "equifax": defaultdict(list)
+                }
+
+                def align_name_top(top, line_dict, tolerance=2.5):
+                    for existing in line_dict:
+                        if abs(existing - top) <= tolerance:
+                            return existing
+                    return top
+
+                for i, word in enumerate(name_words):
+                    bureau = cluster_to_bureau[labels[i]]
+                    top = align_name_top(word["top"], name_lines[bureau])
+                    name_lines[bureau][top].append((word["x0"], word["text"]))
+
                 for bureau in bureaus:
-                    self.credit_report["personal_info"][bureau]["year_of_birth"] = dob_match.group(1)
-                print(f"✅ Found birth year: {dob_match.group(1)}")
-                break
+                    bureau_lines = name_lines[bureau]
+                    sorted_lines = sorted(bureau_lines.items())
+                    all_words = []
 
-# Extract only TransUnion current address (accurately from 2 lines)
+                    for _, word_group in sorted_lines:
+                        sorted_words = [w for _, w in sorted(word_group)]
+                        all_words.append(" ".join(sorted_words))
+
+                    final_name = "  ".join(all_words).strip()
+                    if not final_name:
+                        final_name = "N/A"
+
+                    self.credit_report["personal_info"][bureau]["name"] = final_name
+                    print(f"✅ Extracted name for {bureau}: {final_name}")
+
+        # ✅ Extract DOB
+            for line in lines:
+                if isinstance(line, str):  # ✅ Make sure it's a string
+                    dob_match = re.search(r'Date of Birth\s+(\d{4})', line)
+                    if dob_match:
+                        for bureau in bureaus:
+                            self.credit_report["personal_info"][bureau]["year_of_birth"] = dob_match.group(1)
+                        print(f"✅ Found birth year: {dob_match.group(1)}")
+                        break
+
+        # ✅ Extract Current Address (TransUnion)
         for i, line in enumerate(lines):
             if "Current Address" in line:
-        # Extract both lines
                 street_line = line.replace("Current Address", "").strip()
                 city_line = lines[i + 1].strip() if i + 1 < len(lines) else ""
-
-        # Split into chunks for 3 bureaus
                 street_parts = street_line.split()
                 city_parts = city_line.split()
-
                 if len(street_parts) >= 3 and len(city_parts) >= 3:
-            # Combine 1/3 of each line for TransUnion
                     s_chunk = len(street_parts) // 3
                     c_chunk = len(city_parts) // 3
                     t_street = " ".join(street_parts[:s_chunk])
                     t_city = " ".join(city_parts[:c_chunk])
-
-            # Save TransUnion full address
                     self.credit_report["personal_info"]["transunion"]["current_address"] = f"{t_street} {t_city}".strip()
                     print("✅ Final TransUnion address:", self.credit_report["personal_info"]["transunion"]["current_address"])
                 else:
                     print("⚠️ Address format unexpected; skipping.")
-
                 break
 
+        # ✅ Extract Report Date
         for line in lines:
             report_date_match = re.search(r'Credit Report Date\s+(\d{1,2}/\d{1,2}/\d{4})', line)
             if report_date_match:
                 for bureau in bureaus:
                     self.credit_report["personal_info"][bureau]["report_date"] = report_date_match.group(1)
                 print(f"✅ Found Credit Report Date: {report_date_match.group(1)}")
-                break  
-        
-        employer_lines = []
-        in_employer_section = False
-        for line in lines:
-            if "Employer" in line and not in_employer_section:
-                in_employer_section = True
-                continue
-            if in_employer_section:
-                if not line.strip() or any(kw in line for kw in ["Phone", "Date", "Address"]):
-                    break
-                employer_lines.append(line.strip())
 
-# Assign employers to each bureau based on index
-        if employer_lines:
-            for i, bureau in enumerate(bureaus):
-                if i < len(employer_lines):
-                    self.credit_report["personal_info"][bureau]["employer"] = employer_lines[i]
-                    print(f"✅ Found employer for {bureau}: {employer_lines[i]}")
-        import json
-        print("✅ Final personal_info:", json.dumps(self.credit_report["personal_info"], indent=2))
+        # ✅ Extract Previous Addresses (KMeans logic)
+        prev_start = prev_end = None
 
+        SECTION_TRIGGERS = {"employer", "date", "consumer", "transunion", "experian", "equifax", "statement", "https"}
 
-    
+        for word in words:
+            text = word["text"].lower()
+            if any(key in text for key in ["previous", "prior"]) and prev_start is None:
+                prev_start = word["top"] - 1
+            elif prev_start is not None and any(trigger in text for trigger in SECTION_TRIGGERS):
+                prev_end = word["top"] - 2  # end right before the new section
+                break
+
+        addr_words = [
+            w for w in words
+            if prev_start < w["top"] < prev_end
+            and w["text"].lower() not in {"previous", "address"}
+]
+
+        if len(addr_words) < 9:
+            print("⚠️ Not enough words found to apply clustering.")
+            return
+
+        x_values = np.array([[w["x0"]] for w in addr_words])
+        kmeans = KMeans(n_clusters=3, random_state=42).fit(x_values)
+        labels = kmeans.labels_
+
+        # Map cluster index to bureau name based on x-position
+        cluster_centers = sorted([(i, c[0]) for i, c in enumerate(kmeans.cluster_centers_)], key=lambda x: x[1])
+        cluster_to_bureau = {
+            cluster_centers[0][0]: "transunion",
+            cluster_centers[1][0]: "experian",
+            cluster_centers[2][0]: "equifax"
+        }
+
+        grouped = {
+            "transunion": defaultdict(list),
+            "experian": defaultdict(list),
+            "equifax": defaultdict(list)
+        }
+
+        line_tolerance = 2.5
+
+        def get_aligned_top(top, line_dict):
+            for existing_top in line_dict:
+                if abs(existing_top - top) <= line_tolerance:
+                    return existing_top
+            return top
+
+        for i, word in enumerate(addr_words):
+            bureau = cluster_to_bureau[labels[i]]
+            aligned_top = get_aligned_top(word["top"], grouped[bureau])
+            grouped[bureau][aligned_top].append((word["x0"], word["text"]))
+
+        for bureau in bureaus:
+            lines = grouped[bureau]
+            sorted_lines = sorted(lines.items())
+            address_lines = []
+            for _, word_group in sorted_lines:
+                sorted_words = [w for _, w in sorted(word_group)]
+                address_lines.append(" ".join(sorted_words))
+            full_address = "  ".join(address_lines)
+            self.credit_report["personal_info"][bureau]["previous_address"] = full_address
+            print(f"✅ Previous address for {bureau}: {full_address}")
+        # ✅ Employer block start
+        emp_start = emp_end = None
+
+        for word in words:
+            text = word["text"].lower()
+            if "employer" in text and emp_start is None:
+                emp_start = word["top"] - 1
+            elif "consumer" in text and emp_start is not None:
+                emp_end = word["top"]
+                break
+
+        if emp_start is None or emp_end is None:
+            print("⚠️ Could not find Employer section boundaries.")
+            return
+
+        emp_words = [
+            w for w in words
+            if emp_start <= w["top"] < emp_end and w["text"].lower() != "employer"
+        ]
+
+        if len(emp_words) < 9:
+            print("⚠️ Not enough words to apply clustering to employer section.")
+            return
+
+        emp_x = np.array([[w["x0"]] for w in emp_words])
+        kmeans = KMeans(n_clusters=3, random_state=42).fit(emp_x)
+        labels = kmeans.labels_
+
+        # Map clusters to bureaus (left to right)
+        cluster_centers = sorted([(i, center[0]) for i, center in enumerate(kmeans.cluster_centers_)], key=lambda x: x[1])
+        cluster_to_bureau = {
+            cluster_centers[0][0]: "transunion",
+            cluster_centers[1][0]: "experian",
+            cluster_centers[2][0]: "equifax"
+        }
+
+        # Vertical clustering just like previous address
+        employer_lines = {
+            "transunion": defaultdict(list),
+            "experian": defaultdict(list),
+            "equifax": defaultdict(list)
+        }
+
+        def get_aligned_top(top, line_dict, tolerance=2.5):
+            for existing in line_dict:
+                if abs(existing - top) <= tolerance:
+                    return existing
+            return top
+
+        for i, word in enumerate(emp_words):
+            x0 = word["x0"]
+            text=word["text"]
+            if "service" in text.lower():
+                print(f"SERVICES → x0: {x0} top: {word['top']}")
+
+            # Optional override if needed
+            if x0 < 280:
+                bureau = "transunion"
+            else:
+                label=labels[i]
+                bureau = cluster_to_bureau[label]
+
+            aligned_top = get_aligned_top(word["top"], employer_lines[bureau])
+            employer_lines[bureau][aligned_top].append((x0, word["text"]))
+
+        # Final parsing logic
+        def is_date_line(text):
+            return re.fullmatch(r"\d{1,2}/\d{1,2}/\d{2,4}", text.strip()) is not None
+
+        def is_date_updated_tag(text):
+            return "date updated" in text.lower()
+
+        def is_valid_employer_name(text):
+            return bool(re.search(r"[A-Za-z]{2,}", text))  # at least 2 alphabetic characters
+
+        for bureau in bureaus:
+            lines = employer_lines[bureau]
+            sorted_lines = sorted(lines.items())
+            full_lines = []
+
+            last_index = -1
+            last_employer_line = ""
+
+            for _, word_group in sorted_lines:
+                line = " ".join(w for _, w in sorted(word_group)).strip()
+                if not line:
+                    continue
+
+                # Handle date update lines: extract date only
+                if is_date_updated_tag(line) and last_index != -1:
+                    match = re.search(r"\d{1,2}/\d{1,2}/\d{2,4}", line)
+                    if match:
+                        full_lines[last_index] += f"  {match.group()}"
+                    continue
+
+                if is_date_line(line):
+                    continue  # Skip lone dates
+
+                if is_valid_employer_name(line):
+                    if line != last_employer_line:
+                        full_lines.append(line)
+                        last_index = len(full_lines) - 1
+                        last_employer_line = line
+                    continue
+
+            full_employer_block = "  ".join(full_lines).strip()
+            if not full_employer_block or re.fullmatch(r"[-–/\s]*", full_employer_block):
+                full_employer_block = "N/A"
+
+            self.credit_report["personal_info"][bureau]["employer"] = full_employer_block
+            print(f"✅ Final employer block for {bureau}: {full_employer_block}")
     def extract_summary(self, text):
         """Extract summary information from the text"""
         # Dictionary mapping patterns to keys

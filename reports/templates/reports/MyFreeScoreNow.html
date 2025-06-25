@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Credit Report Analyzer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
         :root {
             --primary-color: #4CAF50;
@@ -1317,12 +1319,23 @@
 
         <div id="results-section" style="display: none;">
         </div>
+        <div class="global-download-section" style="text-align: center; margin-top: 30px; display: none;"
+            id="global-download-button-wrapper">
+            <button class="btn highlight" onclick="downloadCombinedExcel()">📥 Download Combined Excel</button>
+        </div>
     </div>
 
     <script>
+
         let reportData = null; // global scope
         let checkedAccounts = new Set(); // Global Set to store IDs of checked account checkboxes
-        let checkedInquiries = new Set(); // Global Set to store IDs of checked inquiry checkboxes
+        let checkedInquiries = new Set();
+        const checkedAccountsData = [];
+        const checkedInquiriesData = [];
+        const selectedPersonalInfoFields = new Set();
+        const selectedPublicInfoBureaus = new Set();
+
+        // Global Set to store IDs of checked inquiry checkboxes
 
         document.addEventListener('DOMContentLoaded', function () {
             const fileUpload = document.getElementById('pdf-upload');
@@ -1386,15 +1399,16 @@
 
                     if (data.status === "success" && data.data) {
                         reportData = data.data;
+                        document.getElementById("global-download-button-wrapper").style.display = "block";
                         console.log("✅ Full reportData:", reportData);
+
+                        displayResults('transunion');
+                        loading.style.display = 'none';
+                        resultsSection.style.display = 'block'; // ✅ safe to call now that reportData is set
                     } else {
                         console.error("❌ Backend returned error:", data.message || "Unknown error");
+                        loading.style.display = 'none';
                     }
-
-
-                    displayResults('transunion'); // default bureau to display
-                    loading.style.display = 'none';
-                    resultsSection.style.display = 'block';
                 } catch (error) {
                     loading.style.display = 'none';
                     errorMessage.textContent = 'Error processing file: ' + error.message;
@@ -1406,50 +1420,78 @@
             });
             // Function to render personal information with individual checkboxes for each field
             // Function to render personal information (no changes needed here from previous step)
-            function renderPersonalInfo() {
-                const personalInfo =
-                    reportData.personal_info?.transunion ||
-                    reportData.personal_info?.experian ||
-                    reportData.personal_info?.equifax || {};
+            function renderPersonalInfo(bureau) {
+                const personalInfo = reportData.personal_info?.[bureau] || {};
+                const previousAddress = personalInfo.previous_address || 'N/A';
+                const employerRaw = personalInfo.employer || 'N/A';
+
+                const employerInfo = typeof employerRaw === "string"
+                    ? employerRaw.replace(/(\d{1,2}\/\d{1,2}\/\d{4})/g, '$1<br>')
+                    : Array.isArray(employerRaw)
+                        ? employerRaw.map(e => `${e.name} (${e.date_updated})`).join('<br>')
+                        : employerRaw;
+
+                const prefix = `pi-${bureau}`; // Unique per bureau
 
                 return `
-        <div id="personal-info-section" class="section-container">
-            <h2 class="section-title">Personal Information</h2>
-            <div class="summary-cards">
-                <div class="summary-card">
-                    <div class="personal-info-item-wrapper">
-                        <input type="checkbox" id="pi-report-date-toggle" class="personal-info-field-toggle" data-target-id="personal-info-report-date-data" >
-                        <div id="personal-info-report-date-data" class="personal-info-field-data ">
-                            <span class="label">Report Date:</span>
-                            <span class="value">${personalInfo.report_date || 'N/A'}</span>
-                        </div>
-                    </div>
-                    <div class="personal-info-item-wrapper">
-                        <input type="checkbox" id="pi-name-toggle" class="personal-info-field-toggle" data-target-id="personal-info-name-data" >
-                        <div id="personal-info-name-data" class="personal-info-field-data ">
-                            <span class="label">Name:</span>
-                            <span class="value">${personalInfo.name || 'N/A'}</span>
-                        </div>
-                    </div>
-                    <div class="personal-info-item-wrapper">
-                        <input type="checkbox" id="pi-year-of-birth-toggle" class="personal-info-field-toggle" data-target-id="personal-info-year-of-birth-data" >
-                        <div id="personal-info-year-of-birth-data" class="personal-info-field-data ">
-                            <span class="label">Year of Birth:</span>
-                            <span class="value">${personalInfo.year_of_birth || 'N/A'}</span>
-                        </div>
-                    </div>
-                    <div class="personal-info-item-wrapper">
-                        <input type="checkbox" id="pi-current-address-toggle" class="personal-info-field-toggle" data-target-id="personal-info-current-address-data" >
-                        <div id="personal-info-current-address-data" class="personal-info-field-data ">
-                            <span class="label">Current Address:</span>
-                            <span class="value">${personalInfo.current_address || 'N/A'}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="section-container">
+    <h2 class="section-title">Personal Information</h2>
+    <div class="summary-cards">
+        <div class="summary-card">
+
+            ${[
+                        { label: 'Report Date', key: 'report_date' },
+                        { label: 'Name', key: 'name' ,value: personalInfo.name || reportData.personal_info?.transunion?.name || 'N/A' },
+                        { label: 'Year of Birth', key: 'year_of_birth' },
+                        { label: 'Current Address', key: 'current_address', value: personalInfo.current_address || reportData.personal_info?.transunion?.current_address || 'N/A' },
+                        { label: 'Previous Address', key: 'previous_address', value: previousAddress },
+                        { label: 'Employer', key: 'employer', value: employerInfo }
+                    ].map(({ label, key, value }) => {
+                        const id = `${prefix}-${key.replace(/_/g, '-')}-toggle`;
+                        const divId = `${prefix}-${key.replace(/_/g, '-')}-data`;
+                        const isChecked = selectedPersonalInfoFields.has(id) ? 'checked' : '';
+                        const isSelected = selectedPersonalInfoFields.has(id) ? 'selected' : '';
+                        const displayValue = value !== undefined ? value : personalInfo[key] || 'N/A';
+
+                        return `
+<div class="personal-info-item-wrapper">
+    <input type="checkbox" id="${id}" class="personal-info-field-toggle" data-target-id="${divId}" ${isChecked}>
+    <div id="${divId}" class="personal-info-field-data ${isSelected}">
+        <span class="label">${label}:</span>
+        <span class="value">${displayValue}</span>
+    </div>
+</div>`;
+                    }).join('')}
+
         </div>
-    `;
+    </div>
+</div>`;
             }
+
+            // Call this function **after rendering personal info section**
+            function attachPersonalInfoCheckboxListeners() {
+                document.querySelectorAll('.personal-info-field-toggle').forEach(checkbox => {
+                    const targetId = checkbox.getAttribute('data-target-id');
+
+                    // Restore previously selected state visually
+                    if (selectedPersonalInfoFields.has(checkbox.id)) {
+                        checkbox.checked = true;
+                        document.getElementById(targetId)?.classList.add('selected');
+                    }
+
+                    // Track selection
+                    checkbox.addEventListener('change', function () {
+                        if (this.checked) {
+                            selectedPersonalInfoFields.add(this.id);
+                            document.getElementById(targetId)?.classList.add('selected');
+                        } else {
+                            selectedPersonalInfoFields.delete(this.id);
+                            document.getElementById(targetId)?.classList.remove('selected');
+                        }
+                    });
+                });
+            }
+
 
             // renderSummary function (no changes needed here)
             function renderSummary(bureau) {
@@ -1506,51 +1548,61 @@
             // Modified renderPublicInformation function to include the checkbox next to the bureau heading
             function renderPublicInformation(publicInfo, selectedBureau) {
                 const container = document.getElementById("public-info-content");
-                if (!publicInfo) {
-                    container.innerHTML = "<p>No public information available.</p>";
+                if (!publicInfo || !selectedBureau) return;
+
+                const info = publicInfo[selectedBureau];
+                if (!info || Object.keys(info).length === 0) {
+                    container.innerHTML = '<p>No public information available for this bureau.</p>';
                     return;
                 }
 
-                let html = "";
-                const info = publicInfo[selectedBureau]; // Get info for the *selected* bureau
+                const checkedAttr = selectedPublicInfoBureaus.has(selectedBureau) ? 'checked' : '';
+                const selectedClass = selectedPublicInfoBureaus.has(selectedBureau) ? 'selected' : '';
 
-                if (info && Object.keys(info).length > 0) {
-                    html += `
-            <div class="public-info-bureau-container">
-                <div class="public-info-bureau-heading-row">
-                    <input type="checkbox" id="pi-bureau-toggle-${selectedBureau}" class="public-info-bureau-toggle" >
-                    <h4>${selectedBureau.charAt(0).toUpperCase() + selectedBureau.slice(1)}</h4>
-                </div>
-                <div id="public-info-bureau-data-${selectedBureau}" class="public-info-bureau-data ">
-                    <table class="public-info-table">
-                        <tr><td><strong>Type</strong></td><td>${info.type || 'N/A'}</td></tr>
-                        <tr><td><strong>Status</strong></td><td>${info.status || 'N/A'}</td></tr>
-                        <tr><td><strong>Date Filed/Reported</strong></td><td>${info.date_filed || 'N/A'}</td></tr>
-                        <tr><td><strong>Reference #</strong></td><td>${info.reference || 'N/A'}</td></tr>
-                    </table>
-                </div>
+                // Clear existing content (only one bureau shown at a time)
+                container.innerHTML = '';
+
+                const html = `
+        <div class="public-info-bureau-container" id="public-info-block-${selectedBureau}">
+            <div class="public-info-bureau-heading-row">
+                <input type="checkbox" id="pi-bureau-toggle-${selectedBureau}" class="public-info-bureau-toggle" ${checkedAttr}>
+                <h4>${selectedBureau.charAt(0).toUpperCase() + selectedBureau.slice(1)}</h4>
             </div>
-        `;
-                } else {
-                    html = `<p>No public information available for ${selectedBureau.charAt(0).toUpperCase() + selectedBureau.slice(1)}.</p>`;
-                }
+            <div id="public-info-bureau-data-${selectedBureau}" class="public-info-bureau-data ${selectedClass}">
+                <table class="public-info-table">
+                    <tr><td><strong>Type</strong></td><td>${info.type || 'N/A'}</td></tr>
+                    <tr><td><strong>Status</strong></td><td>${info.status || 'N/A'}</td></tr>
+                    <tr><td><strong>Date Filed/Reported</strong></td><td>${info.date_filed || 'N/A'}</td></tr>
+                    <tr><td><strong>Reference #</strong></td><td>${info.reference || 'N/A'}</td></tr>
+                </table>
+            </div>
+        </div>
+    `;
 
-                container.innerHTML = html;
+                container.insertAdjacentHTML('beforeend', html);
 
-                // --- NEW: Add event listener for the public info bureau checkbox after rendering ---
-                const publicBureauCheckbox = document.getElementById(`pi-bureau-toggle-${selectedBureau}`);
-                const publicBureauData = document.getElementById(`public-info-bureau-data-${selectedBureau}`);
-                if (publicBureauCheckbox && publicBureauData) {
-                    publicBureauCheckbox.addEventListener('change', function () {
+                const checkbox = document.getElementById(`pi-bureau-toggle-${selectedBureau}`);
+                const dataDiv = document.getElementById(`public-info-bureau-data-${selectedBureau}`);
+
+                if (checkbox && dataDiv) {
+                    checkbox.addEventListener('change', function () {
                         if (this.checked) {
-                            publicBureauData.classList.add('selected');
+                            selectedPublicInfoBureaus.add(selectedBureau); // ✅ Persist
+                            dataDiv.classList.add('selected');
                         } else {
-                            publicBureauData.classList.remove('selected');
+                            selectedPublicInfoBureaus.delete(selectedBureau); // ✅ Uncheck
+                            dataDiv.classList.remove('selected');
                         }
                     });
-                    // Initial state is already handled by adding 'selected' class in the HTML
+
+                    // Also restore checkbox state after rendering
+                    if (selectedPublicInfoBureaus.has(selectedBureau)) {
+                        checkbox.checked = true;
+                        dataDiv.classList.add('selected');
+                    }
                 }
             }
+
 
 
             function displayResults(bureau) {
@@ -1572,7 +1624,7 @@
             ${renderSummary(bureau)}
         </div>
 
-        ${renderPersonalInfo()} 
+        ${renderPersonalInfo(bureau)} 
         <div class="filter-options">
             <div class="checkbox-container">
                 <input type="checkbox" id="show-only-derogatory">
@@ -1596,8 +1648,7 @@
         </div>
 
         <div class="button-group-tables">
-            <button id="generate-selected-creditors-btn" class="btn">Generate Selected Creditors Table</button>
-            <button id="generate-selected-inquiries-btn" class="btn">Generate Selected Inquiries Table</button>
+            <button id="generate-selected-creditors-btn" class="btn">Generate Selected Creditors and Inquiries Table</button>
         </div>
 
         <div id="selected-creditors-output" class="selected-creditors-section">
@@ -1622,6 +1673,11 @@
                 <textarea id="selected-inquiries-textarea" class="table-text-output" readonly></textarea>
                 <button class="download-csv-btn" onclick="downloadTextAreaAsCSV('selected-inquiries-textarea', 'Selected_Inquiries_Report.csv')">Download as CSV</button>
             </div>
+            
+
+
+            
+
         </div>
     `;
 
@@ -1629,7 +1685,10 @@
                 document.getElementById("bureau-dynamic-content").innerHTML = renderBureauDynamicContent(bureau);
 
 
-                // Public Information: Initial render based on the default bureau
+                // Attach personal info checkbox listeners after rendering
+                attachPersonalInfoCheckboxListeners();
+
+
                 renderPublicInformation(reportData.public_information, bureau);
 
 
@@ -1692,8 +1751,6 @@
                 // Attach event listener for the new "Generate Selected Creditors Table" button
                 document.getElementById('generate-selected-creditors-btn').addEventListener('click', generateSelectedCreditorsAndInquiries);
 
-                // Attach event listener for the new "Generate Selected Inquiries Table" button
-                document.getElementById('generate-selected-inquiries-btn').addEventListener('click', generateSelectedCreditorsAndInquiries);
             }
             function renderBureauDynamicContent(bureau) {
                 return `
@@ -1830,6 +1887,7 @@
                     // Use the original index from reportData.accounts for persistent ID
                     const originalIndex = reportData.accounts.indexOf(account);
                     const accountId = `account-${bureau}-${originalIndex}`;
+                    account.id = accountId;
                     const isChecked = checkedAccounts.has(accountId) ? 'checked' : '';
                     const history = account.payment_history?.[bureau] || "";
 
@@ -1891,6 +1949,7 @@
                     // Use the original index from reportData.inquiries for persistent ID
                     const originalIndex = reportData.inquiries.indexOf(inq);
                     const inquiryId = `inquiry-${bureauName}-${originalIndex}`;
+                    inq.id = inquiryId;
                     const isChecked = checkedInquiries.has(inquiryId) ? 'checked' : '';
 
                     return `
@@ -1939,28 +1998,53 @@
                     checkbox.addEventListener('change', handleCheckboxChange);
                 });
             }
+            document.addEventListener('DOMContentLoaded', function () {
+                const downloadExcelBtn = document.getElementById('download-all-excel-btn');
+                if (downloadExcelBtn) {
+                    downloadExcelBtn.addEventListener('click', window.downloadAllSelectedDataAsExcel);
+                }
+            });
 
-            // Centralized handler for checkbox changes
+
             function handleCheckboxChange(event) {
                 const checkbox = event.target;
-                const id = checkbox.id; // The ID now contains 'type-bureau-originalIndex'
+                const id = checkbox.id;
 
-                if (checkbox.name === 'selected_account') {
+                const [type, bureau, index] = id.split('-');  // type-bureau-originalIndex
+
+                if (type === 'account') {
                     if (checkbox.checked) {
                         checkedAccounts.add(id);
+
+                        // ✅ Push full account data
+                        const accountData = reportData.accounts[parseInt(index)];
+                        checkedAccountsData.push({ ...accountData, selectedBureau: bureau, id });
+
+
                     } else {
                         checkedAccounts.delete(id);
+                        // ✅ Remove from data array as well
+                        const i = checkedAccountsData.findIndex(item => item.id === id);
+                        if (i !== -1) checkedAccountsData.splice(i, 1);
                     }
-                } else if (checkbox.name === 'selected_inquiry') {
+                } else if (type === 'inquiry') {
                     if (checkbox.checked) {
                         checkedInquiries.add(id);
+
+                        // ✅ Push full inquiry data
+                        const inquiryData = reportData.inquiries[parseInt(index)];
+                        checkedInquiriesData.push(inquiryData);
                     } else {
                         checkedInquiries.delete(id);
+                        const i = checkedInquiriesData.findIndex(item => item.id === id);
+                        if (i !== -1) checkedInquiriesData.splice(i, 1);
                     }
                 }
-                console.log('Checked Accounts IDs:', Array.from(checkedAccounts)); // For debugging
-                console.log('Updated Checked Inquiries IDs:', Array.from(checkedInquiries)); // For debugging
+
+                console.log("✅ checkedAccountsData:", checkedAccountsData);
+                console.log("✅ checkedInquiriesData:", checkedInquiriesData);
             }
+
 
             // Combined function to generate both selected creditors and inquiries tables (interactive & text)
             function generateSelectedCreditorsAndInquiries() {
@@ -2232,8 +2316,6 @@
                 const blob = new Blob([textContent], {
                     type: 'text/csv;charset=utf-8;'
                 });
-
-                // Create a link element
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = filename;
@@ -2246,42 +2328,162 @@
                 document.body.removeChild(link);
             };
 
+            window.downloadCombinedExcel = function () {
+                const ws_data = [];
+
+                // ---- 1. Selected Creditors ----
+                if (checkedAccountsData.length > 0) {
+                    ws_data.push(["Selected Creditors"]);
+                    ws_data.push(["Creditor Name", "Bureau", "Date Opened", "Account Number"]);
+
+                    checkedAccountsData.forEach(account => {
+                        const selectedBureau = account.selectedBureau;
+                        const bureauData = account[selectedBureau] || {};
+                        const bureau = selectedBureau.charAt(0).toUpperCase() + selectedBureau.slice(1);
+
+                        ws_data.push([
+                            account.creditor || '',
+                            bureau,
+                            bureauData.date_opened || '',
+                            bureauData.account_number || ''
+                        ]);
+                    });
+
+                    ws_data.push([""]); // Spacer
+                }
+
+                // ---- 2. Selected Inquiries ----
+                if (checkedInquiriesData.length > 0) {
+                    ws_data.push(["Selected Inquiries"]);
+                    ws_data.push(["Inquirer", "Date of Inquiry", "Bureau"]);
+
+                    checkedInquiriesData.forEach(inquiry => {
+                        ws_data.push([
+                            inquiry.inquirer_name || inquiry.creditor || '',
+                            inquiry.date_of_inquiry || inquiry.date || '',
+                            inquiry.bureau || ''
+                        ]);
+                    });
+
+                    ws_data.push([""]); // Spacer
+                }
+
+                // ---- 3. Selected Personal Information ----
+                const bureaus = ['transunion', 'experian', 'equifax'];
+                const personalFields = [
+                    { suffix: 'report-date-toggle', key: 'report_date', label: 'Report Date' },
+                    { suffix: 'name-toggle', key: 'name', label: 'Name' },
+                    { suffix: 'year-of-birth-toggle', key: 'year_of_birth', label: 'Year of Birth' },
+                    { suffix: 'current-address-toggle', key: 'current_address', label: 'Current Address' },
+                    { suffix: 'previous-address-toggle', key: 'previous_address', label: 'Previous Address' },
+                    { suffix: 'employer-toggle', key: 'employer', label: 'Employer' }
+                ];
+
+                bureaus.forEach(bureau => {
+                    const bureauData = reportData.personal_info?.[bureau];
+                    if (!bureauData) return;
+
+                    const selectedFields = personalFields.filter(f => {
+                        return selectedPersonalInfoFields.has(`pi-${bureau}-${f.suffix}`);
+                    });
+
+
+                    if (selectedFields.length > 0) {
+                        ws_data.push([`${bureau.charAt(0).toUpperCase() + bureau.slice(1)} - Selected Personal Information`]);
+
+                        selectedFields.forEach(f => {
+                            let value = bureauData[f.key];
+                            if (Array.isArray(value)) {
+                                value = value.map(e => `${e.name} (${e.date_updated})`).join('; ');
+                            }
+                            ws_data.push([f.label, value || 'N/A']);
+                        });
+
+                        ws_data.push([""]); // Spacer
+                    }
+                });
+
+                // ---- 4. Selected Public Information ----
+                bureaus.forEach(bureau => {
+                    if (selectedPublicInfoBureaus.has(bureau)) {
+                        const info = reportData.public_information?.[bureau];
+                        if (info) {
+                            ws_data.push([`${bureau.charAt(0).toUpperCase() + bureau.slice(1)} - Public Information`]);
+                            ws_data.push(["Type", info.type || 'N/A']);
+                            ws_data.push(["Status", info.status || 'N/A']);
+                            ws_data.push(["Date Filed/Reported", info.date_filed || 'N/A']);
+                            ws_data.push(["Reference #", info.reference || 'N/A']);
+                            ws_data.push([""]); // Spacer
+                        }
+                    }
+                });
+
+                // ---- Final Check ----
+                if (ws_data.length === 0) {
+                    alert("No selected data found.");
+                    return;
+                }
+
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                XLSX.utils.book_append_sheet(wb, ws, "Combined");
+
+                XLSX.writeFile(wb, "Selected_Credit_Report_Data.xlsx");
+            };
+
+
+
             // Function to remove a creditor or inquiry from the table and untick its checkbox
             window.removeCreditorOrInquiry = function (buttonElement) {
-                const idToRemove = buttonElement.dataset.id; // Get the stored checkbox ID
+                const idToRemove = buttonElement.dataset.id;
 
-                // Determine if it's an account or inquiry and remove from the correct Set
                 if (idToRemove.startsWith('account-')) {
                     checkedAccounts.delete(idToRemove);
-                    // Re-generate both interactive and text outputs for creditors
+
+                    // ✅ Remove directly using stored .id
+                    for (let i = checkedAccountsData.length - 1; i >= 0; i--) {
+                        if (checkedAccountsData[i].id === idToRemove) {
+                            checkedAccountsData.splice(i, 1);
+                        }
+                    }
+
                     renderSelectedCreditorsInteractiveTable();
                     generateSelectedCreditorsTextOutput();
+
                 } else if (idToRemove.startsWith('inquiry-')) {
                     checkedInquiries.delete(idToRemove);
-                    // Re-generate both interactive and text outputs for inquiries
+
+                    for (let i = checkedInquiriesData.length - 1; i >= 0; i--) {
+                        const inquiry = checkedInquiriesData[i];
+                        if (inquiry.id === idToRemove) {
+                            checkedInquiriesData.splice(i, 1);
+                        }
+                    }
+
                     renderSelectedInquiriesInteractiveTable();
                     generateSelectedInquiriesTextOutput();
                 }
 
-                // Untick the original checkbox on the main display
+                // Untick the original checkbox
                 const originalCheckbox = document.getElementById(idToRemove);
                 if (originalCheckbox) {
                     originalCheckbox.checked = false;
                 }
 
                 console.log(`Removed ID: ${idToRemove}`);
-                console.log('Updated Checked Accounts IDs:', Array.from(checkedAccounts));
-                console.log('Updated Checked Inquiries IDs:', Array.from(checkedInquiries));
+                console.log('Updated Checked Accounts:', Array.from(checkedAccounts));
+                console.log('Updated Checked Inquiries:', Array.from(checkedInquiries));
 
-                // If after removal, a section becomes empty, hide its text output container
+                // Hide containers if empty
                 if (checkedAccounts.size === 0) {
                     document.getElementById('selected-creditors-text-output-container').style.display = 'none';
-                    document.getElementById('selected-creditors-output').style.display = 'none'; // Hide the entire section
+                    document.getElementById('selected-creditors-output').style.display = 'none';
                     document.getElementById('selected-creditors-interactive-table-container').innerHTML = '<p class="text-center-placeholder">No creditors selected yet.</p>';
                 }
+
                 if (checkedInquiries.size === 0) {
                     document.getElementById('selected-inquiries-text-output-container').style.display = 'none';
-                    document.getElementById('selected-inquiries-output').style.display = 'none'; // Hide the entire section
+                    document.getElementById('selected-inquiries-output').style.display = 'none';
                     document.getElementById('selected-inquiries-interactive-table-container').innerHTML = '<p class="text-center-placeholder">No inquiries selected yet.</p>';
                 }
             };
